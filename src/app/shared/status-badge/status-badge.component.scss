@@ -1,0 +1,13 @@
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &--neutral { background: #e0e0e0; color: #424242; }
+  &--info { background: #bbdefb; color: #0d47a1; }
+  &--warning { background: #ffe0b2; color: #e65100; }
+  &--success { background: #c8e6c9; color: #1b5e20; }
+  &--danger { background: #ffcdd2; color: #b71c1c; }
+}

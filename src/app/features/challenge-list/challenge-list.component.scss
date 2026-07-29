@@ -1,0 +1,32 @@
+.challenge-list {
+  padding: 1rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  &__card-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &__empty {
+    color: #757575;
+  }
+
+  @media (max-width: 600px) {
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

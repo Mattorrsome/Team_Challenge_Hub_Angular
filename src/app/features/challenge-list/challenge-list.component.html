@@ -1,0 +1,34 @@
+<div class="challenge-list">
+  <div class="challenge-list__header">
+    <mat-select
+      placeholder="Filter by status"
+      [value]="statusFilter()"
+      (selectionChange)="onFilterChange($event.value)"
+    >
+      <mat-option [value]="null">All statuses</mat-option>
+      @for (status of statuses; track status) {
+        <mat-option [value]="status">{{ status }}</mat-option>
+      }
+    </mat-select>
+    <a mat-raised-button color="primary" routerLink="/challenges/new">New Challenge</a>
+  </div>
+
+  @if (loading()) {
+    <mat-spinner diameter="32" />
+  } @else if (challenges().length === 0) {
+    <p class="challenge-list__empty">No challenges yet.</p>
+  } @else {
+    <div class="challenge-list__grid">
+      @for (challenge of challenges(); track challenge.id) {
+        <a class="challenge-list__card-link" [routerLink]="['/challenges', challenge.id]">
+          <mat-card>
+            <mat-card-title>{{ challenge.title }}</mat-card-title>
+            <mat-card-content>
+              <app-status-badge [status]="challenge.status" />
+            </mat-card-content>
+          </mat-card>
+        </a>
+      }
+    </div>
+  }
+</div>
