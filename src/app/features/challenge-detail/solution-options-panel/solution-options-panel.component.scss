@@ -1,0 +1,27 @@
+.solution-options-panel {
+  padding: 1rem 0;
+
+  &__field {
+    width: 100%;
+  }
+
+  &__draft {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  &__accepted {
+    list-style: none;
+    padding: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+  }
+}
