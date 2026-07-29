@@ -1,0 +1,12 @@
+@if (userContext.userId() === null) {
+  <div class="user-picker">
+    <h2>Who's working today?</h2>
+    <div class="user-picker__list">
+      @for (user of users(); track user.id) {
+        <button mat-stroked-button (click)="selectUser(user.id)">{{ user.name }}</button>
+      }
+    </div>
+  </div>
+} @else {
+  <button mat-button (click)="userContext.clearUser()">Switch user</button>
+}
