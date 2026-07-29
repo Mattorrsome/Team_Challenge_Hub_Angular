@@ -1,0 +1,20 @@
+@if (challenge(); as c) {
+  <div class="challenge-detail">
+    <div class="challenge-detail__header">
+      <h2>{{ c.title }}</h2>
+      <app-status-badge [status]="c.status" />
+      <a mat-button [routerLink]="['/challenges', c.id, 'edit']">Edit Title</a>
+    </div>
+
+    <p class="challenge-detail__raw-notes">{{ c.rawNotes }}</p>
+
+    <app-status-stepper [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+    <app-problem-statement-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+
+    @if (c.problemStatement) {
+      <app-solution-options-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+    }
+  </div>
+} @else {
+  <mat-spinner diameter="32" />
+}
