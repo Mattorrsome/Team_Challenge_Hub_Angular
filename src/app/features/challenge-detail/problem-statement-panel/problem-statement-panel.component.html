@@ -1,0 +1,15 @@
+<div class="problem-statement-panel">
+  <h3>Problem Statement</h3>
+
+  @if (!challenge.problemStatement && !draftText()) {
+    <button mat-raised-button (click)="requestDraft()" [disabled]="isDrafting()">
+      {{ isDrafting() ? 'Drafting…' : 'Draft Problem Statement' }}
+    </button>
+  } @else {
+    <mat-form-field appearance="outline" class="problem-statement-panel__field">
+      <mat-label>Problem statement (editable)</mat-label>
+      <textarea matInput rows="8" [ngModel]="draftText()" (ngModelChange)="draftText.set($event)"></textarea>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="acceptAndSave()">Accept & Save</button>
+  }
+</div>
