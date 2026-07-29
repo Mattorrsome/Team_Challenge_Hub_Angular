@@ -1,0 +1,29 @@
+<form class="challenge-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-form-field appearance="outline">
+    <mat-label>Title</mat-label>
+    <input matInput formControlName="title" />
+    @if (form.controls.title.invalid && form.controls.title.touched) {
+      <mat-error>Title is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Raw notes</mat-label>
+    <textarea matInput formControlName="rawNotes" rows="6"></textarea>
+    @if (form.controls.rawNotes.invalid && form.controls.rawNotes.touched) {
+      <mat-error>Raw notes are required.</mat-error>
+    }
+  </mat-form-field>
+
+  @if (serverErrors().length > 0) {
+    <div class="challenge-form__server-errors">
+      @for (message of serverErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </div>
+  }
+
+  <button mat-raised-button color="primary" type="submit">
+    {{ mode() === 'edit' ? 'Save' : 'Create Challenge' }}
+  </button>
+</form>
