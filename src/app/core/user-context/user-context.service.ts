@@ -9,21 +9,16 @@ export class UserContextService {
   readonly userId = this.currentUserId.asReadonly();
 
   setUser(id: number): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, String(id));
-    }
+    localStorage.setItem(STORAGE_KEY, String(id));
     this.currentUserId.set(id);
   }
 
   clearUser(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    localStorage.removeItem(STORAGE_KEY);
     this.currentUserId.set(null);
   }
 
   private readStoredUserId(): number | null {
-    if (typeof localStorage === 'undefined') return null;
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? Number(raw) : null;
   }

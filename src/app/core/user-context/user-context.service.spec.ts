@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { UserContextService } from './user-context';
+import { UserContextService } from './user-context.service';
 
 describe('UserContextService', () => {
   let service: UserContextService;
