@@ -19,7 +19,9 @@ test('create challenge, draft problem statement, edit, accept, appears in list',
   await textarea.fill('Problem: CI is flaky. Impact: slows every merge. Context: integration suite only.');
   await page.getByRole('button', { name: 'Accept & Save' }).click();
 
-  await expect(page.getByText('Problem Statement Drafted')).toBeVisible();
+  await expect(
+    page.locator('.challenge-detail__header').getByText('Problem Statement Drafted'),
+  ).toBeVisible();
 
   // Verify it appears in the list with the updated status.
   await page.goto('/challenges');

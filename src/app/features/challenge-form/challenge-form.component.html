@@ -23,7 +23,7 @@
     </div>
   }
 
-  <button mat-raised-button color="primary" type="submit">
+  <button mat-raised-button color="primary" type="submit" [disabled]="!isLoaded()">
     {{ mode() === 'edit' ? 'Save' : 'Create Challenge' }}
   </button>
 </form>

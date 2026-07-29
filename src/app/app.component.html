@@ -1,9 +1,13 @@
 <mat-toolbar color="primary">
   <span>Team Challenge Hub</span>
   <span class="spacer"></span>
-  <app-user-picker />
+  @if (userContext.userId() !== null) {
+    <app-user-picker />
+  }
 </mat-toolbar>
 
-@if (userContext.userId() !== null) {
+@if (userContext.userId() === null) {
+  <app-user-picker />
+} @else {
   <router-outlet />
 }

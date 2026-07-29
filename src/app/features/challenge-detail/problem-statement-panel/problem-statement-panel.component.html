@@ -8,7 +8,7 @@
   } @else {
     <mat-form-field appearance="outline" class="problem-statement-panel__field">
       <mat-label>Problem statement (editable)</mat-label>
-      <textarea matInput rows="8" [ngModel]="draftText()" (ngModelChange)="draftText.set($event)"></textarea>
+      <textarea matInput rows="8" [ngModel]="draftText()" (ngModelChange)="updateDraftText($event)"></textarea>
     </mat-form-field>
     <button mat-raised-button color="primary" (click)="acceptAndSave()">Accept & Save</button>
   }

@@ -41,6 +41,9 @@ export class ChallengeFormComponent implements OnInit {
   });
 
   readonly serverErrors = signal<string[]>([]);
+  // False only while an edit-mode fetch is in flight; keeps submit disabled so a
+  // premature submit can't fall through to the create branch (see finding #1).
+  readonly isLoaded = signal(true);
 
   ngOnInit(): void {
     const mode = (this.route.snapshot.data['mode'] as FormMode) ?? 'create';
@@ -48,10 +51,12 @@ export class ChallengeFormComponent implements OnInit {
 
     if (mode === 'edit') {
       const id = Number(this.route.snapshot.paramMap.get('id'));
+      this.isLoaded.set(false);
       this.form.controls.rawNotes.disable();
       this.challengeApi.getChallenge(id).subscribe((challenge) => {
         this.editingChallenge = challenge;
         this.form.patchValue({ title: challenge.title, rawNotes: challenge.rawNotes });
+        this.isLoaded.set(true);
       });
     }
   }

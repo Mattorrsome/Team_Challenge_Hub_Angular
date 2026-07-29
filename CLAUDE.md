@@ -30,9 +30,16 @@ ng generate component <path> --style=scss
 ```
 
 Once scaffolded, standard Angular CLI commands apply: `ng serve`, `ng build`,
-`ng test` (Jasmine/Karma), and Playwright for e2e (`npx playwright test` once
-configured). No test/build commands are established yet — confirm against
-`angular.json`/`package.json` once they exist rather than assuming.
+`ng test`, and Playwright for e2e (`npx playwright test` once configured).
+
+**Correction (discovered during implementation):** the Angular 22 CLI default
+unit-test runner is **Vitest** (`@angular/build:unit-test`), not Jasmine/Karma.
+Use `ng test --watch=false` (not `--include=...`) and Vitest matchers (e.g.
+`.toBe(true)`, not Jasmine's `toBeTrue()`).
+
+`proxy.conf.json`'s backend target (`https://localhost:5443`) is a placeholder
+until the sibling `Team_Challenge_Hub_API` repo is scaffolded and its real
+Kestrel dev port is known — update it then.
 
 ## Architecture
 

@@ -53,13 +53,15 @@ export class SolutionOptionsPanelComponent {
 
   acceptDraft(index: number): void {
     const text = this.draftOptions()[index];
-    this.challengeApi.addOption(this.challenge.id, text).subscribe((option) => {
+    const challengeId = this.challenge.id;
+    this.challengeApi.addOption(challengeId, text).subscribe(() => {
       const remaining = this.draftOptions().filter((_, i) => i !== index);
       this.draftOptions.set(remaining);
-      this.challengeUpdated.emit({
-        ...this.challenge,
-        status: 'OptionsDrafted',
-        options: [...this.challenge.options, option],
+      // Re-fetch rather than guessing the new status client-side — addOption only
+      // returns the created SolutionOption, and the API is the source of truth
+      // for status transitions (see finding #2).
+      this.challengeApi.getChallenge(challengeId).subscribe((updated) => {
+        this.challengeUpdated.emit(updated);
       });
     });
   }

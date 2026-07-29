@@ -18,11 +18,17 @@ export class ProblemStatementPanelComponent {
   private readonly challengeApi = inject(ChallengeApiService);
 
   private readonly challengeSignal = signal<Challenge | null>(null);
+  // Once the user starts typing in the textarea, stop re-seeding draftText from
+  // incoming challenge updates (e.g. a sibling panel's action refreshing the
+  // challenge) — otherwise an in-progress unsaved edit is silently discarded.
+  private hasUserEdited = false;
 
   @Input({ required: true })
   set challenge(value: Challenge) {
     this.challengeSignal.set(value);
-    this.draftText.set(value.problemStatement ?? '');
+    if (!this.hasUserEdited) {
+      this.draftText.set(value.problemStatement ?? '');
+    }
   }
   get challenge(): Challenge {
     return this.challengeSignal()!;
@@ -32,6 +38,11 @@ export class ProblemStatementPanelComponent {
 
   readonly draftText = signal('');
   readonly isDrafting = signal(false);
+
+  updateDraftText(text: string): void {
+    this.hasUserEdited = true;
+    this.draftText.set(text);
+  }
 
   requestDraft(): void {
     this.isDrafting.set(true);
