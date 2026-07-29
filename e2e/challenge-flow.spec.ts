@@ -22,7 +22,6 @@ test('create challenge, draft problem statement, edit, accept, appears in list',
   await expect(page.getByText('Problem Statement Drafted')).toBeVisible();
 
   // Verify it appears in the list with the updated status.
-  await page.getByRole('link', { name: 'Team Challenge Hub' }).click().catch(() => {});
   await page.goto('/challenges');
   const card = page.getByText('Reduce flaky CI builds').locator('..');
   await expect(card.getByText('Problem Statement Drafted')).toBeVisible();
