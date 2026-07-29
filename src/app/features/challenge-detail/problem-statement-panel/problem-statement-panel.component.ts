@@ -35,9 +35,14 @@ export class ProblemStatementPanelComponent {
 
   requestDraft(): void {
     this.isDrafting.set(true);
-    this.challengeApi.draftProblemStatement(this.challenge.id).subscribe((response) => {
-      this.draftText.set(response.text);
-      this.isDrafting.set(false);
+    this.challengeApi.draftProblemStatement(this.challenge.id).subscribe({
+      next: (response) => {
+        this.draftText.set(response.text);
+        this.isDrafting.set(false);
+      },
+      error: () => {
+        this.isDrafting.set(false);
+      },
     });
   }
 
