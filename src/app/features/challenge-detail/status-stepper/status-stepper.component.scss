@@ -1,0 +1,17 @@
+.status-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+
+  &__steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+}

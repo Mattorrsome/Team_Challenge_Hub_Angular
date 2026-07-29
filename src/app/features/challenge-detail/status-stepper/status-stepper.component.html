@@ -1,0 +1,22 @@
+<div class="status-stepper">
+  <div class="status-stepper__steps">
+    @for (step of steps; track step) {
+      <app-status-badge [status]="step" />
+    }
+    @if (challenge.status === 'Rejected') {
+      <app-status-badge status="Rejected" />
+    }
+  </div>
+
+  <div class="status-stepper__actions">
+    @if (challenge.status === 'OptionSelected') {
+      <button mat-raised-button color="primary" (click)="transition('InReview')">
+        Move to In Review
+      </button>
+    }
+    @if (challenge.status === 'InReview') {
+      <button mat-raised-button color="primary" (click)="transition('Approved')">Approve</button>
+      <button mat-raised-button color="warn" (click)="transition('Rejected')">Reject</button>
+    }
+  </div>
+</div>
