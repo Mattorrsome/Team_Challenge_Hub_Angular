@@ -19,6 +19,7 @@ export class UserContextService {
   }
 
   private readStoredUserId(): number | null {
+    if (typeof localStorage === 'undefined') return null;
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? Number(raw) : null;
   }
