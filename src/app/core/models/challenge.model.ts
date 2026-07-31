@@ -32,7 +32,7 @@ export interface UpdateChallengeRequest {
 }
 
 export interface DraftProblemStatementResponse {
-  text: string;
+  problemStatement: string;
 }
 
 export interface DraftSolutionOptionsResponse {
