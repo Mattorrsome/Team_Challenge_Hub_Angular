@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ChallengeApiService } from '../../../core/services/challenge-api.service';
 import { Challenge, ChallengeStatus } from '../../../core/models/challenge.model';
@@ -36,7 +45,15 @@ export class StatusStepperComponent {
 
   @Output() challengeUpdated = new EventEmitter<Challenge>();
 
-  readonly steps = STEP_ORDER;
+  // `Rejected` is off the linear path, so indexOf is -1 and every step reads as
+  // upcoming — the separate Rejected badge in the template carries the state.
+  readonly steps = computed(() => {
+    const currentIndex = STEP_ORDER.indexOf(this.challengeSignal()!.status);
+    return STEP_ORDER.map((status, index) => ({
+      status,
+      state: index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'upcoming',
+    }));
+  });
 
   transition(status: ChallengeStatus): void {
     this.challengeApi.updateStatus(this.challenge.id, status).subscribe((updated) => {

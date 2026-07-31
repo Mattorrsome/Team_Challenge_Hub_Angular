@@ -15,6 +15,11 @@
       <app-solution-options-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
     }
   </div>
+} @else if (loadFailed()) {
+  <div class="challenge-detail__error">
+    <p>Challenge not found.</p>
+    <a mat-raised-button color="primary" routerLink="/challenges">Back to challenges</a>
+  </div>
 } @else {
   <mat-spinner diameter="32" />
 }

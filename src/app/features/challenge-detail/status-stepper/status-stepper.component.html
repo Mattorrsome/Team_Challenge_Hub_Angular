@@ -1,7 +1,9 @@
 <div class="status-stepper">
   <div class="status-stepper__steps">
-    @for (step of steps; track step) {
-      <app-status-badge [status]="step" />
+    @for (step of steps(); track step.status) {
+      <span class="status-stepper__step" [class]="'status-stepper__step--' + step.state">
+        <app-status-badge [status]="step.status" />
+      </span>
     }
     @if (challenge.status === 'Rejected') {
       <app-status-badge status="Rejected" />

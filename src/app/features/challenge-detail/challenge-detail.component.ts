@@ -30,10 +30,16 @@ export class ChallengeDetailComponent implements OnInit {
   private readonly challengeApi = inject(ChallengeApiService);
 
   readonly challenge = signal<Challenge | null>(null);
+  readonly loadFailed = signal(false);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.challengeApi.getChallenge(id).subscribe((challenge) => this.challenge.set(challenge));
+    this.challengeApi.getChallenge(id).subscribe({
+      next: (challenge) => this.challenge.set(challenge),
+      // The error interceptor shows a snackbar for 5xx but leaves component
+      // state alone, so without this the spinner would spin forever on a 404.
+      error: () => this.loadFailed.set(true),
+    });
   }
 
   onChallengeUpdated(updated: Challenge): void {

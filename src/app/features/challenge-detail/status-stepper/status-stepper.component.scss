@@ -10,6 +10,27 @@
     gap: 0.5rem;
   }
 
+  // app-status-badge keys only off the status name, so progress state has to be
+  // expressed by the wrapper.
+  &__step {
+    display: inline-flex;
+    border-radius: 999px;
+
+    &--done {
+      opacity: 0.5;
+    }
+
+    &--current {
+      outline: 2px solid #1976d2;
+      outline-offset: 2px;
+      font-weight: 600;
+    }
+
+    &--upcoming {
+      opacity: 0.3;
+    }
+  }
+
   &__actions {
     display: flex;
     gap: 0.5rem;

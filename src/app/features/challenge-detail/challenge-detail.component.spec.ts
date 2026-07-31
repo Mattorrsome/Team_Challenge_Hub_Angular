@@ -40,21 +40,35 @@ describe('ChallengeDetailComponent', () => {
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-
-    const req = httpMock.expectOne(`${environment.apiBaseUrl}/challenges/1`);
-    expect(req.request.method).toBe('GET');
-    req.flush(fakeChallenge);
   });
 
   afterEach(() => {
     httpMock.verify();
   });
 
+  // ngOnInit already fired the request; each test decides how it resolves.
+  function expectLoadRequest() {
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/challenges/1`);
+    expect(req.request.method).toBe('GET');
+    return req;
+  }
+
   it('should create', () => {
+    expectLoadRequest().flush(fakeChallenge);
     expect(component).toBeTruthy();
   });
 
   it('loads the challenge by route id and stores it in the signal', () => {
+    expectLoadRequest().flush(fakeChallenge);
+
     expect(component.challenge()).toEqual(fakeChallenge);
+    expect(component.loadFailed()).toBe(false);
+  });
+
+  it('sets loadFailed instead of spinning forever when the challenge is missing', () => {
+    expectLoadRequest().flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+    expect(component.challenge()).toBeNull();
+    expect(component.loadFailed()).toBe(true);
   });
 });

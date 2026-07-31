@@ -35,4 +35,25 @@ describe('StatusStepperComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('marks the current status current, earlier steps done, later steps upcoming', () => {
+    fixture.componentRef.setInput('challenge', { ...fakeChallenge, status: 'OptionSelected' });
+    fixture.detectChanges();
+
+    expect(component.steps().map((s) => s.state)).toEqual([
+      'done',
+      'done',
+      'done',
+      'current',
+      'upcoming',
+      'upcoming',
+    ]);
+  });
+
+  it('treats Rejected as off the linear path', () => {
+    fixture.componentRef.setInput('challenge', { ...fakeChallenge, status: 'Rejected' });
+    fixture.detectChanges();
+
+    expect(component.steps().every((s) => s.state === 'upcoming')).toBe(true);
+  });
 });
