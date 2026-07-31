@@ -4,42 +4,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-This repo is pre-scaffold: no Angular project exists yet, only the design spec at
-`docs/specs/2026-07-27-frontend-design.md`. That spec is the source of truth for
-architecture, conventions, and scope — read it in full before scaffolding or
-implementing anything. This file summarizes it; the spec has the details
-(exact routes, request/response shapes, status flow).
+Scaffolded. Angular 22 app lives at repo root (`angular.json`, `package.json`,
+`src/`), built per `docs/specs/2026-07-27-frontend-design.md` — that spec
+remains the source of truth for architecture, conventions, and scope. This
+file summarizes it; the spec has the details (exact routes, request/response
+shapes, status flow).
 
 Companion backend spec lives in a sibling repo:
 `../Team_Challenge_Hub_API/docs/specs/2026-07-27-backend-design.md`.
 
 ## Setup / commands
 
-No `package.json` exists yet. Before scaffolding, verify Node.js is
-`^22.22.3 || ^24.15.0 || >=26.0.0` (required by Angular 22) — upgrade first if
-the dev machine is on an older LTS.
+Requires Node.js `^22.22.3 || ^24.15.0 || >=26.0.0` (Angular 22 requirement).
 
-Scaffold with Angular CLI, standalone components, SCSS styling:
 ```
-ng new <name> --style=scss --standalone
+npm install
+npm start           # ng serve
+npm run build       # ng build
+npm test            # ng test (Vitest, watch mode)
+npm run e2e         # playwright test
 ```
-Components must be generated with the legacy suffix style (not the CLI's
-newer suffix-less default):
+
+Components are generated with the legacy suffix style (not the CLI's newer
+suffix-less default):
 ```
 ng generate component <path> --style=scss
 ```
 
-Once scaffolded, standard Angular CLI commands apply: `ng serve`, `ng build`,
-`ng test`, and Playwright for e2e (`npx playwright test` once configured).
+The unit-test runner is **Vitest** (`@angular/build:unit-test`), not
+Jasmine/Karma. Use `ng test --watch=false` (not `--include=...`) and Vitest
+matchers (e.g. `.toBe(true)`, not Jasmine's `toBeTrue()`).
 
-**Correction (discovered during implementation):** the Angular 22 CLI default
-unit-test runner is **Vitest** (`@angular/build:unit-test`), not Jasmine/Karma.
-Use `ng test --watch=false` (not `--include=...`) and Vitest matchers (e.g.
-`.toBe(true)`, not Jasmine's `toBeTrue()`).
-
-`proxy.conf.json`'s backend target (`https://localhost:5443`) is a placeholder
-until the sibling `Team_Challenge_Hub_API` repo is scaffolded and its real
-Kestrel dev port is known — update it then.
+`proxy.conf.json` targets the sibling API's real Kestrel dev port,
+`https://localhost:7261` (`http://localhost:5179` is the documented fallback if
+the dev HTTPS certificate causes trouble). Task 14's Playwright e2e test
+(`e2e/challenge-flow.spec.ts`) needs that backend running alongside `ng serve`
+— start it with `dotnet run --project src/TeamChallengeHub.Api
+--launch-profile https` in the sibling repo, then `npm run e2e`. Note it writes
+to the API's dev SQLite database, so the challenges it creates persist there.
 
 ## Architecture
 

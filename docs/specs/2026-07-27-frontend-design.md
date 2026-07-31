@@ -38,7 +38,9 @@ Out of scope:
 - `HttpClient` for API calls
 - Reactive Forms for create/edit
 - SCSS for styling (Angular CLI `--style=scss`)
-- Jasmine/Karma for component tests (Angular CLI default)
+- Vitest for component tests (`@angular/build:unit-test`, the Angular 22 CLI
+  default — see `CLAUDE.md` for why this replaced the original Jasmine/Karma
+  choice)
 - Playwright for end-to-end tests
 
 ## Coding Conventions

@@ -1,5 +1,17 @@
 # Team Challenge Hub Angular Frontend Implementation Plan
 
+> **Status: complete as of 2026-07-31.** All 14 tasks are implemented and
+> `ng test --watch=false` passes 18/18 across 12 files. The per-step checkboxes
+> below were never ticked during execution and are left unticked deliberately —
+> the red-phase gates ("run test to verify it fails") and per-task commits cannot
+> be reconstructed after the fact, so ticking them retroactively would record
+> verification that was never observed. Treat the passing suite and the code as
+> the source of truth for what landed, not the boxes.
+>
+> All three Post-Plan Follow-Up items are closed as of 2026-07-31, including
+> item 2: `npm run e2e` passes 1/1 against a live backend, observed for the first
+> time. See `docs/2026-07-31-gap-analysis.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Scaffold and build the Angular frontend for Team Challenge Hub per `docs/specs/2026-07-27-frontend-design.md` — challenge list, create/edit form, AI-draft-assisted detail view (problem statement + solution options with human accept gate), status stepper, and a no-auth user picker.
@@ -1888,6 +1900,6 @@ git commit -m "test: add Playwright E2E flow test (requires backend to run)"
 ## Post-Plan Follow-Up
 
 Once `Team_Challenge_Hub_API` is scaffolded and runnable:
-1. Update `proxy.conf.json`'s target port (Task 1) to match its real Kestrel dev port.
-2. Run `npm run e2e` for real and confirm Task 14's test passes.
-3. Revisit the "Cross-Repo Assumptions" section above against the actual API responses; adjust `challenge-api.service.ts` and `core/models/*.ts` if the real JSON shape differs (enum casing, draft-endpoint response field names, select/status response body).
+1. ~~Update `proxy.conf.json`'s target port (Task 1) to match its real Kestrel dev port.~~ **Closed 2026-07-31** — target is now `https://localhost:7261`.
+2. ~~Run `npm run e2e` for real and confirm Task 14's test passes.~~ **Closed 2026-07-31** — first observed green run against a live API (`dotnet run --launch-profile https` on `:7261` alongside `ng serve`): `1 passed (26.3s)`.
+3. ~~Revisit the "Cross-Repo Assumptions" section above against the actual API responses; adjust `challenge-api.service.ts` and `core/models/*.ts` if the real JSON shape differs (enum casing, draft-endpoint response field names, select/status response body).~~ **Closed 2026-07-31** — checked against the real DTOs. Two mismatches found and fixed on this side: `DraftProblemStatementResponse.text` -> `problemStatement`, and the phantom `SolutionOption.challengeId` removed. Enum casing and select/status response bodies were already correct.
