@@ -74,7 +74,7 @@ describe('ChallengeDetailComponent', () => {
 
   const panelCases: Array<[ChallengeStatus, 'problem-statement' | 'solution-options' | 'none']> = [
     ['Submitted', 'problem-statement'],
-    ['ProblemStatementDrafted', 'problem-statement'],
+    ['ProblemStatementDrafted', 'solution-options'],
     ['OptionsDrafted', 'solution-options'],
     ['OptionSelected', 'solution-options'],
     ['InReview', 'none'],
@@ -91,5 +91,29 @@ describe('ChallengeDetailComponent', () => {
 
     expect(problemPanel !== null).toBe(expected === 'problem-statement');
     expect(optionsPanel !== null).toBe(expected === 'solution-options');
+  });
+
+  it('shows the accepted problem statement as read-only text once it is set', () => {
+    expectLoadRequest().flush({
+      ...fakeChallenge,
+      status: 'OptionsDrafted',
+      problemStatement: 'Problem: Deploys take too long.',
+    });
+    fixture.detectChanges();
+
+    const section = fixture.debugElement.query(By.css('.challenge-detail__problem-statement'));
+    expect(section).not.toBeNull();
+    expect(section.nativeElement.textContent).toContain('Deploys take too long');
+    // Read-only: the editable problem-statement panel must not be mounted here.
+    expect(fixture.debugElement.query(By.css('app-problem-statement-panel'))).toBeNull();
+  });
+
+  it('does not show a problem statement section before one is accepted', () => {
+    expectLoadRequest().flush({ ...fakeChallenge, status: 'Submitted', problemStatement: null });
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('.challenge-detail__problem-statement')),
+    ).toBeNull();
   });
 });

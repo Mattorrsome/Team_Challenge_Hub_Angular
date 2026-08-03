@@ -37,8 +37,8 @@ export class ChallengeDetailComponent implements OnInit {
   readonly currentPanel = computed<DetailPanel>(() => {
     switch (this.challenge()?.status) {
       case 'Submitted':
-      case 'ProblemStatementDrafted':
         return 'problem-statement';
+      case 'ProblemStatementDrafted':
       case 'OptionsDrafted':
       case 'OptionSelected':
         return 'solution-options';
