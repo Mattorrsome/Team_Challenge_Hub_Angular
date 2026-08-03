@@ -42,6 +42,10 @@ export class ChallengeDetailComponent implements OnInit {
       case 'OptionsDrafted':
       case 'OptionSelected':
         return 'solution-options';
+      // ponytail: catch-all default, so adding a ChallengeStatus compiles clean
+      // and silently renders no panel for it. The 7-case parameterized test in
+      // this component's spec is the exhaustiveness guard — it fails when the
+      // union grows. Swap in a `never` check here if that guard isn't enough.
       default:
         return 'none';
     }

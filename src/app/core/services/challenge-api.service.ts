@@ -28,6 +28,12 @@ export class ChallengeApiService {
    * so switching the acting user cannot leave the previous user's challenges
    * on screen. Must be called from an injection context.
    */
+  // ponytail: no error surface — callers only read .value()/.isLoading(), so a
+  // failed fetch renders as "No challenges yet." rather than an error. The HTTP
+  // interceptor still snackbars 5xx, so it isn't fully silent. Expose this
+  // resource's .error() signal if empty-vs-failed needs distinguishing in the UI.
+  // ponytail: return type inferred (HttpResourceRef<Challenge[]>); annotate it
+  // explicitly if a caller ever needs the named type at a boundary.
   challengesResource(filters: () => ChallengeFilters) {
     return httpResource<Challenge[]>(
       () => {
