@@ -666,7 +666,9 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(location.path()).toBe('/');
+    // Location.path() strips the base href, so the root route reads as '' —
+    // NOT '/'. Asserting '/' here fails with "expected '' to be '/'".
+    expect(location.path()).toBe('');
   });
 });
 ```
