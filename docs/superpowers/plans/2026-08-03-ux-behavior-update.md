@@ -17,6 +17,11 @@ tests, ASP.NET Core 8 + EF Core (backend filter addition), xUnit.
 
 ## Global Constraints
 
+- **Two repositories.** Task 1 is in
+  `C:\Projects\Team_Challenge_Hub_Planning\Team_Challenge_Hub_API`; Tasks 2-4
+  are in `C:\Projects\Team_Challenge_Hub_Planning\Team_Challenge_Hub_Angular`
+  (where this plan file lives). Both are on branch
+  `feat/ux-behavior-update`. Commit in the repo the task's files belong to.
 - Angular components: `.component.ts`/`.component.html`/`.component.scss`
   triad, standalone, `inject()` for DI, `OnPush` change detection, typed
   inputs/outputs — no implicit `any`.
@@ -167,75 +172,150 @@ git commit -m "feat: filter GET /api/challenges by userId"
 
 ### Task 2: Angular — scope the challenge list to the current user
 
-Requires Task 1 deployed (or at least merged) since it calls the new
-`userId` query param. Also fixes "switching user doesn't reload the list" —
-today `ChallengeListComponent.ngOnInit` only fetches once; the toolbar's
-`app-user-picker` can change the acting user without navigating away, so the
-component needs to react to that signal changing, not just load once.
+Requires Task 1's `userId` query param to exist in the API repo (the unit
+tests here mock HTTP, so they pass without a running backend, but the manual
+verification at the end of this plan needs Task 1 merged).
+
+Two problems, one fix. Today `ChallengeListComponent.ngOnInit` fetches once
+and shows every user's challenges. The toolbar's `app-user-picker` can change
+the acting user without navigating away, so a one-shot `ngOnInit` fetch never
+refreshes. Making the fetch reactive to the user signal fixes both the
+scoping and the stale-list problem.
+
+**Approach — `httpResource()`, not `effect()`:** the fetch is declared as an
+`httpResource` keyed on the `userId` and `statusFilter` signals. Angular
+discourages `effect()` for data fetching, and an effect gives no request
+cancellation — two rapid user switches can deliver responses out of order and
+leave the wrong user's challenges on screen. `httpResource` supersedes the
+in-flight request when its params change. This decision was confirmed with
+the human partner (2026-08-03) over the alternatives (`effect()`,
+`toObservable` + `switchMap`).
 
 **Files:**
-- Modify: `src/app/core/services/challenge-api.service.ts:20-26`
+- Modify: `src/app/core/services/challenge-api.service.ts` (replace
+  `getChallenges` at lines 20-26)
 - Modify: `src/app/features/challenge-list/challenge-list.component.ts`
 - Test: `src/app/core/services/challenge-api.service.spec.ts`
 - Test: `src/app/features/challenge-list/challenge-list.component.spec.ts`
+- Do NOT modify:
+  `src/app/features/challenge-list/challenge-list.component.html` — it
+  already reads `challenges()` and `loading()` as signals, and those names
+  are preserved.
 
 **Interfaces:**
-- Consumes: `UserContextService.userId` signal (`Signal<number | null>`,
-  from `src/app/core/user-context/user-context.service.ts:9`).
-- Produces: `ChallengeApiService.getChallenges(status?: ChallengeStatus, userId?: number): Observable<Challenge[]>`
+- Consumes: `UserContextService.userId` — a `Signal<number | null>` exposed
+  at `src/app/core/user-context/user-context.service.ts:9`.
+- Produces: `ChallengeApiService.challengesResource(filters: () => ChallengeFilters): HttpResourceRef<Challenge[]>`
+  where `ChallengeFilters` is
+  `{ status: ChallengeStatus | null; userId: number | null }`, exported from
+  `src/app/core/services/challenge-api.service.ts`.
+- Removes: `ChallengeApiService.getChallenges()`. It has exactly one caller
+  (`ChallengeListComponent`), which this task rewrites, so leaving it would
+  be dead code. All other `ChallengeApiService` methods stay untouched.
 
-- [ ] **Step 1: Write the failing test for the API service's new param**
+**Verified test mechanics (do not deviate — these were confirmed empirically
+against Angular 22.0.8 in this repo before the plan was written):**
+- `httpResource` reports `isLoading() === true` and `value()` equal to the
+  `defaultValue` from the moment the component is created, before any tick.
+  No spinner flash, so the template's existing `@if (loading())` guard is
+  correct as-is.
+- `TestBed.tick()` is what issues the request. Call it before
+  `httpMock.expectOne(...)`.
+- **Never `await fixture.whenStable()` before flushing a resource request —
+  it deadlocks.** `whenStable` waits on the pending HTTP task that only
+  `flush()` can resolve, so the test times out after 5s.
+- After `req.flush(...)`, the value lands only after a microtask drain plus
+  an effect flush: `await Promise.resolve(); TestBed.tick();`. Without the
+  drain, `value()` is still the default and `isLoading()` is still `true`.
+- Changing a keyed signal then calling `TestBed.tick()` issues exactly one
+  superseding request; `httpMock.verify()` passes with no leaked requests.
+
+- [ ] **Step 1: Write the failing test for the service's resource factory**
 
 Replace the contents of `src/app/core/services/challenge-api.service.spec.ts`
 with:
 
 ```typescript
+import { Component, Signal, inject, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ChallengeApiService } from './challenge-api.service';
+import { Challenge, ChallengeStatus } from '../models/challenge.model';
 import { environment } from '../../../environments/environment';
 
+// httpResource must be created in an injection context, so the factory is
+// exercised through a host component the way the real caller uses it.
+@Component({ standalone: true, template: '' })
+class HostComponent {
+  private readonly api = inject(ChallengeApiService);
+
+  readonly status = signal<ChallengeStatus | null>(null);
+  readonly userId = signal<number | null>(1);
+
+  private readonly resource = this.api.challengesResource(() => ({
+    status: this.status(),
+    userId: this.userId(),
+  }));
+
+  readonly challenges: Signal<Challenge[]> = this.resource.value;
+  readonly loading: Signal<boolean> = this.resource.isLoading;
+}
+
 describe('ChallengeApiService', () => {
-  let service: ChallengeApiService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    service = TestBed.inject(ChallengeApiService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
+  it('should be created', () => {
+    expect(TestBed.inject(ChallengeApiService)).toBeTruthy();
+  });
+
+  it('sends userId as a query param and omits status when it is null', () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    TestBed.tick();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiBaseUrl}/challenges`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('userId')).toBe('1');
+    expect(req.request.params.has('status')).toBe(false);
+
+    req.flush([]);
     httpMock.verify();
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+  it('sends both params when a status filter is set', () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    TestBed.tick();
+    httpMock.expectOne((r) => r.url === `${environment.apiBaseUrl}/challenges`).flush([]);
 
-  it('sends status and userId as query params when both are provided', () => {
-    service.getChallenges('Submitted', 7).subscribe();
+    fixture.componentInstance.status.set('Submitted');
+    TestBed.tick();
 
-    const req = httpMock.expectOne(
-      (r) => r.url === `${environment.apiBaseUrl}/challenges`,
-    );
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiBaseUrl}/challenges`);
     expect(req.request.params.get('status')).toBe('Submitted');
-    expect(req.request.params.get('userId')).toBe('7');
+    expect(req.request.params.get('userId')).toBe('1');
+
     req.flush([]);
+    httpMock.verify();
   });
 
-  it('omits userId from the query when not provided', () => {
-    service.getChallenges('Submitted').subscribe();
+  it('omits userId when there is no current user', () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    fixture.componentInstance.userId.set(null);
+    TestBed.tick();
 
-    const req = httpMock.expectOne(
-      (r) => r.url === `${environment.apiBaseUrl}/challenges`,
-    );
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiBaseUrl}/challenges`);
     expect(req.request.params.has('userId')).toBe(false);
+
     req.flush([]);
+    httpMock.verify();
   });
 });
 ```
@@ -243,30 +323,61 @@ describe('ChallengeApiService', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `ng test --watch=false --include='**/challenge-api.service.spec.ts'`
-Expected: FAIL — `getChallenges` doesn't accept a second argument yet.
+Expected: FAIL — `challengesResource` does not exist on `ChallengeApiService`.
 
-- [ ] **Step 3: Add `userId` param to `ChallengeApiService.getChallenges`**
+- [ ] **Step 3: Replace `getChallenges` with `challengesResource`**
 
-In `src/app/core/services/challenge-api.service.ts`, replace the
-`getChallenges` method (currently lines 20-26) with:
+In `src/app/core/services/challenge-api.service.ts`:
+
+Change the import line for `@angular/common/http` to add `httpResource` and
+drop the now-unused `HttpParams`:
 
 ```typescript
-  getChallenges(status?: ChallengeStatus, userId?: number): Observable<Challenge[]> {
-    let params = new HttpParams();
-    if (status) {
-      params = params.set('status', status);
-    }
-    if (userId !== undefined) {
-      params = params.set('userId', userId);
-    }
-    return this.http.get<Challenge[]>(this.baseUrl, { params });
+import { HttpClient, httpResource } from '@angular/common/http';
+```
+
+Add this exported interface just above the `@Injectable` decorator:
+
+```typescript
+export interface ChallengeFilters {
+  status: ChallengeStatus | null;
+  userId: number | null;
+}
+```
+
+Replace the `getChallenges` method (currently lines 20-26) with:
+
+```typescript
+  /**
+   * Reactive challenge list, keyed on the given filters. Re-fetches whenever a
+   * signal read inside `filters` changes, superseding any in-flight request —
+   * so switching the acting user cannot leave the previous user's challenges
+   * on screen. Must be called from an injection context.
+   */
+  challengesResource(filters: () => ChallengeFilters) {
+    return httpResource<Challenge[]>(
+      () => {
+        const { status, userId } = filters();
+        const params: Record<string, string> = {};
+        if (status) {
+          params['status'] = status;
+        }
+        if (userId !== null) {
+          params['userId'] = String(userId);
+        }
+        return { url: this.baseUrl, params };
+      },
+      { defaultValue: [] },
+    );
   }
 ```
+
+Leave every other method in the file unchanged.
 
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `ng test --watch=false --include='**/challenge-api.service.spec.ts'`
-Expected: PASS
+Expected: PASS (4 tests).
 
 - [ ] **Step 5: Write the failing test for list scoping and reload-on-user-switch**
 
@@ -295,40 +406,103 @@ describe('ChallengeListComponent', () => {
 
     httpMock = TestBed.inject(HttpTestingController);
     userContext = TestBed.inject(UserContextService);
+    userContext.setUser(1);
   });
 
   afterEach(() => {
+    localStorage.clear();
+  });
+
+  const listUrl = `${environment.apiBaseUrl}/challenges`;
+
+  it('should create', () => {
+    const fixture = TestBed.createComponent(ChallengeListComponent);
+    TestBed.tick();
+
+    expect(fixture.componentInstance).toBeTruthy();
+
+    httpMock.expectOne((r) => r.url === listUrl).flush([]);
     httpMock.verify();
   });
 
-  it('should create', () => {
-    userContext.setUser(1);
+  it('shows the spinner state until the first response arrives', async () => {
     const fixture = TestBed.createComponent(ChallengeListComponent);
-    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.loading()).toBe(true);
+    expect(component.challenges()).toEqual([]);
+
+    TestBed.tick();
+    httpMock.expectOne((r) => r.url === listUrl).flush([
+      {
+        id: 1,
+        title: 'Improve deploy pipeline',
+        rawNotes: 'Deploys take too long.',
+        problemStatement: null,
+        status: 'Submitted',
+        submittedByUserId: 1,
+        createdAt: '2026-07-29T00:00:00Z',
+        updatedAt: '2026-07-29T00:00:00Z',
+        options: [],
+      },
+    ]);
+    await Promise.resolve();
     TestBed.tick();
 
-    const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
-
-    httpMock.expectOne((r) => r.url === `${environment.apiBaseUrl}/challenges`).flush([]);
+    expect(component.loading()).toBe(false);
+    expect(component.challenges().length).toBe(1);
+    httpMock.verify();
   });
 
-  it('scopes the fetch to the current user and reloads when the user switches', () => {
-    userContext.setUser(1);
-    const fixture = TestBed.createComponent(ChallengeListComponent);
-    fixture.detectChanges();
+  it('scopes the fetch to the current user', () => {
+    TestBed.createComponent(ChallengeListComponent);
     TestBed.tick();
 
-    const firstReq = httpMock.expectOne((r) => r.url === `${environment.apiBaseUrl}/challenges`);
+    const req = httpMock.expectOne((r) => r.url === listUrl);
+    expect(req.request.params.get('userId')).toBe('1');
+
+    req.flush([]);
+    httpMock.verify();
+  });
+
+  it('re-fetches for the new user when the acting user switches', async () => {
+    TestBed.createComponent(ChallengeListComponent);
+    TestBed.tick();
+
+    const firstReq = httpMock.expectOne((r) => r.url === listUrl);
     expect(firstReq.request.params.get('userId')).toBe('1');
     firstReq.flush([]);
+    await Promise.resolve();
+    TestBed.tick();
 
     userContext.setUser(2);
     TestBed.tick();
 
-    const secondReq = httpMock.expectOne((r) => r.url === `${environment.apiBaseUrl}/challenges`);
+    const secondReq = httpMock.expectOne((r) => r.url === listUrl);
     expect(secondReq.request.params.get('userId')).toBe('2');
     secondReq.flush([]);
+    await Promise.resolve();
+    TestBed.tick();
+
+    httpMock.verify();
+  });
+
+  it('re-fetches with the status filter when it changes', async () => {
+    const fixture = TestBed.createComponent(ChallengeListComponent);
+    TestBed.tick();
+    httpMock.expectOne((r) => r.url === listUrl).flush([]);
+    await Promise.resolve();
+    TestBed.tick();
+
+    fixture.componentInstance.onFilterChange('Approved');
+    TestBed.tick();
+
+    const req = httpMock.expectOne((r) => r.url === listUrl);
+    expect(req.request.params.get('status')).toBe('Approved');
+    expect(req.request.params.get('userId')).toBe('1');
+
+    req.flush([]);
+    httpMock.verify();
   });
 });
 ```
@@ -336,8 +510,8 @@ describe('ChallengeListComponent', () => {
 - [ ] **Step 6: Run test to verify it fails**
 
 Run: `ng test --watch=false --include='**/challenge-list.component.spec.ts'`
-Expected: FAIL — component doesn't send `userId` or react to user changes
-yet.
+Expected: FAIL — the component still calls the removed `getChallenges` (a
+build/type error), and sends no `userId`.
 
 - [ ] **Step 7: Make the list reactive to the current user**
 
@@ -345,7 +519,7 @@ Replace the contents of
 `src/app/features/challenge-list/challenge-list.component.ts` with:
 
 ```typescript
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Signal, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -386,26 +560,18 @@ export class ChallengeListComponent {
   private readonly userContext = inject(UserContextService);
 
   readonly statuses = ALL_STATUSES;
-  readonly challenges = signal<Challenge[]>([]);
-  readonly loading = signal(true);
   readonly statusFilter = signal<ChallengeStatus | null>(null);
 
-  constructor() {
-    // Runs once on creation and again whenever userId or statusFilter change —
-    // this is what makes switching the acting user (via the toolbar picker,
-    // without navigating away) refresh the list to that user's challenges.
-    effect(() => {
-      const userId = this.userContext.userId();
-      const status = this.statusFilter();
-      this.loading.set(true);
-      this.challengeApi
-        .getChallenges(status ?? undefined, userId ?? undefined)
-        .subscribe((challenges) => {
-          this.challenges.set(challenges);
-          this.loading.set(false);
-        });
-    });
-  }
+  // Re-fetches whenever the acting user or the status filter changes, so
+  // switching users via the toolbar picker refreshes the list without a
+  // navigation. The resource supersedes any in-flight request.
+  private readonly challengesResource = this.challengeApi.challengesResource(() => ({
+    status: this.statusFilter(),
+    userId: this.userContext.userId(),
+  }));
+
+  readonly challenges: Signal<Challenge[]> = this.challengesResource.value;
+  readonly loading: Signal<boolean> = this.challengesResource.isLoading;
 
   onFilterChange(status: ChallengeStatus | null): void {
     this.statusFilter.set(status);
@@ -413,10 +579,13 @@ export class ChallengeListComponent {
 }
 ```
 
+Note `implements OnInit` and the `ngOnInit`/`load()` methods are gone — the
+resource handles the initial fetch. The template is unchanged.
+
 - [ ] **Step 8: Run test to verify it passes**
 
 Run: `ng test --watch=false --include='**/challenge-list.component.spec.ts'`
-Expected: PASS
+Expected: PASS (5 tests).
 
 - [ ] **Step 9: Run the full frontend test suite**
 
@@ -429,7 +598,6 @@ Expected: All tests PASS.
 git add src/app/core/services/challenge-api.service.ts src/app/core/services/challenge-api.service.spec.ts src/app/features/challenge-list/challenge-list.component.ts src/app/features/challenge-list/challenge-list.component.spec.ts
 git commit -m "feat: scope challenge list to the current user, reload on user switch"
 ```
-
 ---
 
 ### Task 3: Angular — header title links home
