@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -8,6 +8,8 @@ import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.com
 import { StatusStepperComponent } from './status-stepper/status-stepper.component';
 import { ProblemStatementPanelComponent } from './problem-statement-panel/problem-statement-panel.component';
 import { SolutionOptionsPanelComponent } from './solution-options-panel/solution-options-panel.component';
+
+type DetailPanel = 'problem-statement' | 'solution-options' | 'none';
 
 @Component({
   selector: 'app-challenge-detail',
@@ -31,6 +33,19 @@ export class ChallengeDetailComponent implements OnInit {
 
   readonly challenge = signal<Challenge | null>(null);
   readonly loadFailed = signal(false);
+
+  readonly currentPanel = computed<DetailPanel>(() => {
+    switch (this.challenge()?.status) {
+      case 'Submitted':
+      case 'ProblemStatementDrafted':
+        return 'problem-statement';
+      case 'OptionsDrafted':
+      case 'OptionSelected':
+        return 'solution-options';
+      default:
+        return 'none';
+    }
+  });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));

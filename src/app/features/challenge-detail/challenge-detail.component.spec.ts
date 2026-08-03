@@ -2,9 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { By } from '@angular/platform-browser';
 import { ChallengeDetailComponent } from './challenge-detail.component';
 import { environment } from '../../../environments/environment';
-import { Challenge } from '../../core/models/challenge.model';
+import { Challenge, ChallengeStatus } from '../../core/models/challenge.model';
 
 describe('ChallengeDetailComponent', () => {
   let fixture: ComponentFixture<ChallengeDetailComponent>;
@@ -46,7 +47,6 @@ describe('ChallengeDetailComponent', () => {
     httpMock.verify();
   });
 
-  // ngOnInit already fired the request; each test decides how it resolves.
   function expectLoadRequest() {
     const req = httpMock.expectOne(`${environment.apiBaseUrl}/challenges/1`);
     expect(req.request.method).toBe('GET');
@@ -70,5 +70,26 @@ describe('ChallengeDetailComponent', () => {
 
     expect(component.challenge()).toBeNull();
     expect(component.loadFailed()).toBe(true);
+  });
+
+  const panelCases: Array<[ChallengeStatus, 'problem-statement' | 'solution-options' | 'none']> = [
+    ['Submitted', 'problem-statement'],
+    ['ProblemStatementDrafted', 'problem-statement'],
+    ['OptionsDrafted', 'solution-options'],
+    ['OptionSelected', 'solution-options'],
+    ['InReview', 'none'],
+    ['Approved', 'none'],
+    ['Rejected', 'none'],
+  ];
+
+  it.each(panelCases)('shows only the %s panel for status %s', (status, expected) => {
+    expectLoadRequest().flush({ ...fakeChallenge, status });
+    fixture.detectChanges();
+
+    const problemPanel = fixture.debugElement.query(By.css('app-problem-statement-panel'));
+    const optionsPanel = fixture.debugElement.query(By.css('app-solution-options-panel'));
+
+    expect(problemPanel !== null).toBe(expected === 'problem-statement');
+    expect(optionsPanel !== null).toBe(expected === 'solution-options');
   });
 });

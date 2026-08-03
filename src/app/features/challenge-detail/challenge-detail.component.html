@@ -9,10 +9,14 @@
     <p class="challenge-detail__raw-notes">{{ c.rawNotes }}</p>
 
     <app-status-stepper [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
-    <app-problem-statement-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
 
-    @if (c.problemStatement) {
-      <app-solution-options-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+    @switch (currentPanel()) {
+      @case ('problem-statement') {
+        <app-problem-statement-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+      }
+      @case ('solution-options') {
+        <app-solution-options-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+      }
     }
   </div>
 } @else if (loadFailed()) {
