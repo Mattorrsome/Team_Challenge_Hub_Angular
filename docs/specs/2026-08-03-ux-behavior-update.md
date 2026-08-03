@@ -39,9 +39,29 @@ Out of scope:
 
 | Status | Panel shown |
 |---|---|
-| `Submitted`, `ProblemStatementDrafted` | `problem-statement-panel` |
-| `OptionsDrafted`, `OptionSelected` | `solution-options-panel` |
-| `InReview`, `Approved`, `Rejected` | review-actions block (status display + transition buttons) |
+| `Submitted` | `problem-statement-panel` |
+| `ProblemStatementDrafted`, `OptionsDrafted`, `OptionSelected` | `solution-options-panel` |
+| `InReview`, `Approved`, `Rejected` | none — the header status badge and the stepper's own transition buttons cover this stage |
+
+**Why `ProblemStatementDrafted` shows the solution-options panel, not the
+problem-statement panel.** `ProblemStatementDrafted` is the state in which the
+user's next action is *adding solution options*, so it belongs to the
+solution-options step. The API is explicit about this: `AddOptionAsync`
+(`ChallengeService.cs:93-101`) accepts only `ProblemStatementDrafted` or
+`OptionsDrafted`, and auto-transitions `ProblemStatementDrafted →
+OptionsDrafted` when the first option is added. Since
+`solution-options-panel` holds the app's only `addOption` caller, and the
+stepper has no button for that hop, mapping `ProblemStatementDrafted` to the
+problem-statement panel dead-ends the workflow — the challenge can never
+reach `OptionsDrafted`. (An earlier revision of this spec had that wrong; the
+final whole-branch review caught it, 2026-08-03.)
+
+Because the accepted problem statement is no longer visible in an editable
+panel once the flow moves on, `challenge-detail` renders it as read-only text
+above the panel whenever it is set. Otherwise the user would be drafting
+solutions to a problem they cannot read — the raw notes alone are not the
+refined statement. Accepting the problem statement is therefore a one-way
+step: it can be re-drafted only before acceptance.
 
 `StatusStepperComponent` is unchanged — it still renders all steps as a
 progress trail across the top of the page. Only the content panel beneath it

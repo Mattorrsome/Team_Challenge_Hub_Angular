@@ -764,6 +764,7 @@ git commit -m "feat: link header title back to the challenge list"
 **Files:**
 - Modify: `src/app/features/challenge-detail/challenge-detail.component.ts`
 - Modify: `src/app/features/challenge-detail/challenge-detail.component.html`
+- Modify: `src/app/features/challenge-detail/challenge-detail.component.scss`
 - Test: `src/app/features/challenge-detail/challenge-detail.component.spec.ts`
 
 **Interfaces:**
@@ -771,6 +772,32 @@ git commit -m "feat: link header title back to the challenge list"
   type `'problem-statement' | 'solution-options' | 'none'`.
 - Consumes: `Challenge.status` (`ChallengeStatus`, from
   `src/app/core/models/challenge.model.ts:3-10`).
+
+**Panel mapping — get this right, it is load-bearing:**
+
+| Status | Panel |
+|---|---|
+| `Submitted` | `problem-statement` |
+| `ProblemStatementDrafted`, `OptionsDrafted`, `OptionSelected` | `solution-options` |
+| `InReview`, `Approved`, `Rejected` | `none` |
+
+`ProblemStatementDrafted` maps to **solution-options**, not
+problem-statement. It is the state whose next action is adding options, and
+the API enforces that: `AddOptionAsync`
+(`Team_Challenge_Hub_API/src/TeamChallengeHub.Api/Services/ChallengeService.cs:93-101`)
+accepts only `ProblemStatementDrafted` or `OptionsDrafted` and
+auto-transitions the former to the latter on the first option. Since the
+app's only `addOption` caller is inside `solution-options-panel`, and the
+stepper has no button for that hop, mapping `ProblemStatementDrafted` to the
+problem-statement panel dead-ends the workflow permanently. An earlier
+revision of this plan had it wrong and the test encoded the same error, so
+the suite went green on a broken journey — caught by the final whole-branch
+review (2026-08-03).
+
+Because the accepted problem statement is no longer visible in an editable
+panel once the flow moves past `Submitted`, `challenge-detail` renders it as
+read-only text above the panel whenever it is set — `solution-options-panel`
+does not display it, and the raw notes are not the refined statement.
 
 `StatusStepperComponent` is unchanged — it already renders all steps as a
 progress trail, and already owns the `OptionSelected`→`InReview` and
@@ -865,7 +892,7 @@ describe('ChallengeDetailComponent', () => {
 
   const panelCases: Array<[ChallengeStatus, 'problem-statement' | 'solution-options' | 'none']> = [
     ['Submitted', 'problem-statement'],
-    ['ProblemStatementDrafted', 'problem-statement'],
+    ['ProblemStatementDrafted', 'solution-options'],
     ['OptionsDrafted', 'solution-options'],
     ['OptionSelected', 'solution-options'],
     ['InReview', 'none'],
@@ -883,16 +910,40 @@ describe('ChallengeDetailComponent', () => {
     expect(problemPanel !== null).toBe(expected === 'problem-statement');
     expect(optionsPanel !== null).toBe(expected === 'solution-options');
   });
+
+  it('shows the accepted problem statement as read-only text once it is set', () => {
+    expectLoadRequest().flush({
+      ...fakeChallenge,
+      status: 'OptionsDrafted',
+      problemStatement: 'Problem: Deploys take too long.',
+    });
+    fixture.detectChanges();
+
+    const section = fixture.debugElement.query(By.css('.challenge-detail__problem-statement'));
+    expect(section).not.toBeNull();
+    expect(section.nativeElement.textContent).toContain('Deploys take too long');
+    // Read-only: the editable problem-statement panel must not be mounted here.
+    expect(fixture.debugElement.query(By.css('app-problem-statement-panel'))).toBeNull();
+  });
+
+  it('does not show a problem statement section before one is accepted', () => {
+    expectLoadRequest().flush({ ...fakeChallenge, status: 'Submitted', problemStatement: null });
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('.challenge-detail__problem-statement')),
+    ).toBeNull();
+  });
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `ng test --watch=false --include='**/challenge-detail.component.spec.ts'`
-Expected: FAIL — both panels currently render together for
-`ProblemStatementDrafted`/`OptionsDrafted`/`OptionSelected` (the old
-template's `@if (c.problemStatement)` gate doesn't match the new
-per-status rule).
+Expected: FAIL — the old template renders both panels together whenever
+`problemStatement` is set (its `@if (c.problemStatement)` gate), which doesn't
+match the new per-status rule, and it has no read-only problem-statement
+section for the two new tests to find.
 
 - [ ] **Step 3: Add the `currentPanel` computed signal**
 
@@ -939,8 +990,12 @@ export class ChallengeDetailComponent implements OnInit {
   readonly currentPanel = computed<DetailPanel>(() => {
     switch (this.challenge()?.status) {
       case 'Submitted':
-      case 'ProblemStatementDrafted':
         return 'problem-statement';
+      // ProblemStatementDrafted belongs to the solution-options step: adding an
+      // option is the only way out of it (AddOptionAsync auto-transitions it to
+      // OptionsDrafted), and the only addOption caller lives in that panel.
+      // Mapping it to 'problem-statement' dead-ends the workflow.
+      case 'ProblemStatementDrafted':
       case 'OptionsDrafted':
       case 'OptionSelected':
         return 'solution-options';
@@ -981,6 +1036,15 @@ Replace the contents of
 
     <p class="challenge-detail__raw-notes">{{ c.rawNotes }}</p>
 
+    <!-- Once accepted, the problem statement leaves the editable panel, but the
+         user still needs to read it while drafting options against it. -->
+    @if (c.problemStatement) {
+      <section class="challenge-detail__problem-statement">
+        <h3>Problem Statement</h3>
+        <p>{{ c.problemStatement }}</p>
+      </section>
+    }
+
     <app-status-stepper [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
 
     @switch (currentPanel()) {
@@ -1002,20 +1066,41 @@ Replace the contents of
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [ ] **Step 5: Style the read-only problem statement**
+
+Add this inside the existing `.challenge-detail` block in
+`src/app/features/challenge-detail/challenge-detail.component.scss`, matching
+the file's `&__`-BEM convention and its use of `pre-wrap` for multi-line
+server text:
+
+```scss
+  &__problem-statement {
+    p {
+      white-space: pre-wrap;
+      margin: 0;
+    }
+
+    h3 {
+      margin: 0 0 0.5rem;
+    }
+  }
+```
+
+- [ ] **Step 6: Run test to verify it passes**
 
 Run: `ng test --watch=false --include='**/challenge-detail.component.spec.ts'`
-Expected: PASS (all 10 tests: 3 existing + 7 parameterized panel cases).
+Expected: PASS (12 tests: 3 existing + 7 parameterized panel cases + 2
+problem-statement-visibility tests).
 
-- [ ] **Step 6: Run the full frontend test suite**
+- [ ] **Step 7: Run the full frontend test suite**
 
 Run: `ng test --watch=false`
 Expected: All tests PASS.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add src/app/features/challenge-detail/challenge-detail.component.ts src/app/features/challenge-detail/challenge-detail.component.html src/app/features/challenge-detail/challenge-detail.component.spec.ts
+git add src/app/features/challenge-detail/challenge-detail.component.ts src/app/features/challenge-detail/challenge-detail.component.html src/app/features/challenge-detail/challenge-detail.component.scss src/app/features/challenge-detail/challenge-detail.component.spec.ts
 git commit -m "feat: show only the current step's panel in challenge detail"
 ```
 
@@ -1027,13 +1112,24 @@ After all four tasks are committed, manually verify against a running app
 (`npm start` in the Angular repo, `dotnet run --project
 src/TeamChallengeHub.Api --launch-profile https` in the API repo):
 
+**Step 2 is the one that matters most — it is the step that catches a
+dead-ended workflow, and the defect the final review found would have been
+caught here had this list been run.**
+
 1. Create a challenge as User A — confirm only the problem-statement panel
    shows (no solution-options panel yet).
 2. Draft + accept a problem statement — confirm the view switches to the
-   solution-options panel.
-3. Add + select an option, move to "In Review" — confirm no panel shows
-   below the stepper, just the status badge and the stepper's own
-   Approve/Reject buttons.
+   **solution-options panel**, that its "Draft Solution Options" button is
+   present and clickable, and that the accepted problem statement is now shown
+   as read-only text above it. If you are still looking at the editable
+   problem-statement panel here, the workflow is dead-ended: adding an option
+   is the only way out of `ProblemStatementDrafted` and that panel cannot do
+   it.
+3. Draft, edit and accept an option — confirm the status advances to
+   `OptionsDrafted` and a "Select" button appears on the accepted option.
+   Select it, then move to "In Review" — confirm no panel shows below the
+   stepper, just the status badge, the read-only problem statement, and the
+   stepper's own Approve/Reject buttons.
 4. Click the "Team Challenge Hub" header title from the detail view —
    confirm it navigates back to the challenge list.
 5. Switch to User B via the toolbar picker while on the challenge list —
