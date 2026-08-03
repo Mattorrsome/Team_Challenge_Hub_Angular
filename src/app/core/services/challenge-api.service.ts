@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, httpResource } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -12,17 +12,37 @@ import {
 } from '../models/challenge.model';
 import { SolutionOption } from '../models/solution-option.model';
 
+export interface ChallengeFilters {
+  status: ChallengeStatus | null;
+  userId: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChallengeApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/challenges`;
 
-  getChallenges(status?: ChallengeStatus): Observable<Challenge[]> {
-    let params = new HttpParams();
-    if (status) {
-      params = params.set('status', status);
-    }
-    return this.http.get<Challenge[]>(this.baseUrl, { params });
+  /**
+   * Reactive challenge list, keyed on the given filters. Re-fetches whenever a
+   * signal read inside `filters` changes, superseding any in-flight request —
+   * so switching the acting user cannot leave the previous user's challenges
+   * on screen. Must be called from an injection context.
+   */
+  challengesResource(filters: () => ChallengeFilters) {
+    return httpResource<Challenge[]>(
+      () => {
+        const { status, userId } = filters();
+        const params: Record<string, string> = {};
+        if (status) {
+          params['status'] = status;
+        }
+        if (userId !== null) {
+          params['userId'] = String(userId);
+        }
+        return { url: this.baseUrl, params };
+      },
+      { defaultValue: [] },
+    );
   }
 
   getChallenge(id: number): Observable<Challenge> {
