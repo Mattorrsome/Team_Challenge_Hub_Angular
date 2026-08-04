@@ -760,7 +760,16 @@ describe('SignUpComponent', () => {
     );
 
     expect(fixture.componentInstance.form.controls.username.hasError('server')).toBe(true);
-    expect(fixture.componentInstance.serverErrors()).toEqual(['That username is already taken.']);
+    expect(fixture.componentInstance.serverErrors()).toEqual([]);
+
+    // The username's own mat-error already shows this message inline — the
+    // generic .auth-form__error block must not repeat it.
+    fixture.detectChanges();
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const errorEls = Array.from(nativeElement.querySelectorAll('.auth-form__error'));
+    expect(
+      errorEls.some((el) => el.textContent?.includes('That username is already taken.')),
+    ).toBe(false);
     httpMock.verify();
   });
 });
@@ -959,10 +968,14 @@ export class SignUpComponent {
       this.form.controls.username.setErrors({ server: usernameErrors[0] });
     }
 
-    const messages = body?.errors
-      ? Object.values(body.errors).flat()
+    // Everything without its own inline field error, so a username conflict
+    // isn't rendered twice (once by the field's mat-error, once here).
+    const otherErrors = body?.errors
+      ? Object.entries(body.errors)
+          .filter(([field]) => field !== 'Username')
+          .flatMap(([, messages]) => messages)
       : ['Please check the form and try again.'];
-    this.serverErrors.set(messages);
+    this.serverErrors.set(otherErrors);
   }
 }
 ```

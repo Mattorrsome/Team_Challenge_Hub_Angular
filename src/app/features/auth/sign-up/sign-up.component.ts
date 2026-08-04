@@ -58,9 +58,13 @@ export class SignUpComponent {
       this.form.controls.username.setErrors({ server: usernameErrors[0] });
     }
 
-    const messages = body?.errors
-      ? Object.values(body.errors).flat()
+    // Everything without its own inline field error, so a username conflict
+    // isn't rendered twice (once by the field's mat-error, once here).
+    const otherErrors = body?.errors
+      ? Object.entries(body.errors)
+          .filter(([field]) => field !== 'Username')
+          .flatMap(([, messages]) => messages)
       : ['Please check the form and try again.'];
-    this.serverErrors.set(messages);
+    this.serverErrors.set(otherErrors);
   }
 }

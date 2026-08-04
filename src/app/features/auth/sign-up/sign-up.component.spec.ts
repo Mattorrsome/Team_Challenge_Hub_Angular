@@ -57,7 +57,16 @@ describe('SignUpComponent', () => {
     );
 
     expect(fixture.componentInstance.form.controls.username.hasError('server')).toBe(true);
-    expect(fixture.componentInstance.serverErrors()).toEqual(['That username is already taken.']);
+    expect(fixture.componentInstance.serverErrors()).toEqual([]);
+
+    // The username's own mat-error already shows this message inline — the
+    // generic .auth-form__error block must not repeat it.
+    fixture.detectChanges();
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const errorEls = Array.from(nativeElement.querySelectorAll('.auth-form__error'));
+    expect(
+      errorEls.some((el) => el.textContent?.includes('That username is already taken.')),
+    ).toBe(false);
     httpMock.verify();
   });
 
