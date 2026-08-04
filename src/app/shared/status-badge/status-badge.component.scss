@@ -8,6 +8,9 @@
   // No M3 system token covers semantic status colors, so each variant is an
   // explicit light-dark() pair: the light-theme pastel, and a dark-theme fill
   // dark enough to sit on the app's dark surface with a light foreground.
+  // ponytail: light-theme AA headroom is thinner than dark's — neutral 7.6,
+  // info 6.2, success 5.9, danger 4.7 (dark: 8.0-9.2). danger is next to watch
+  // if these pastels are ever adjusted.
   &--neutral {
     background: light-dark(#e0e0e0, #37414d);
     color: light-dark(#424242, #e3e6ea);
@@ -20,7 +23,9 @@
 
   &--warning {
     background: light-dark(#ffe0b2, #5c3a06);
-    color: light-dark(#e65100, #ffdfb0);
+    // Light foreground darkened from #e65100 (2.99:1 — failed WCAG AA at
+    // 12px/600) to reach 5.07:1 on this background. Same hue family.
+    color: light-dark(#a63c00, #ffdfb0);
   }
 
   &--success {

@@ -6,6 +6,10 @@
   max-width: 720px;
 
   &__header {
+    // ponytail: no flex-wrap at the 600px breakpoint — a long status like
+    // "ProblemStatementDrafted" squeezes the title around ~375px (cosmetic,
+    // nothing overflows). Same 3-line `flex-wrap: wrap` fix already applied
+    // to .challenge-list__header's @media (max-width: 600px) block applies here.
     display: flex;
     align-items: center;
     gap: 1rem;
