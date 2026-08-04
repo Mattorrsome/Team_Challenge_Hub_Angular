@@ -1,0 +1,29 @@
+<form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <h1 class="auth-form__title">Sign in</h1>
+
+  <mat-form-field>
+    <mat-label>Username</mat-label>
+    <input matInput formControlName="username" autocomplete="username" />
+    @if (form.controls.username.touched && form.controls.username.hasError('required')) {
+      <mat-error>Username is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Password</mat-label>
+    <input matInput type="password" formControlName="password" autocomplete="current-password" />
+    @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+      <mat-error>Password is required.</mat-error>
+    }
+  </mat-form-field>
+
+  @if (serverError()) {
+    <p class="auth-form__error">{{ serverError() }}</p>
+  }
+
+  <button mat-flat-button type="submit">Sign in</button>
+
+  <p class="auth-form__switch">
+    No account yet? <a routerLink="/sign-up">Create one</a>
+  </p>
+</form>
