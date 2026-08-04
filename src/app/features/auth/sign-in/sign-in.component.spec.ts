@@ -57,4 +57,18 @@ describe('SignInComponent', () => {
     expect(fixture.componentInstance.serverError()).toBe('Invalid username or password.');
     httpMock.verify();
   });
+
+  it('does not show the inline credentials error for a 500', () => {
+    const fixture = TestBed.createComponent(SignInComponent);
+
+    fixture.componentInstance.form.setValue({ username: 'alex.kim', password: 'ChangeMe123!' });
+    fixture.componentInstance.onSubmit();
+
+    httpMock
+      .expectOne(signInUrl)
+      .flush({ error: 'Something went wrong.' }, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(fixture.componentInstance.serverError()).toBeNull();
+    httpMock.verify();
+  });
 });

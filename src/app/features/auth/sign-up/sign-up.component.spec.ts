@@ -60,4 +60,23 @@ describe('SignUpComponent', () => {
     expect(fixture.componentInstance.serverErrors()).toEqual(['That username is already taken.']);
     httpMock.verify();
   });
+
+  it('renders a non-username validation error in the template', () => {
+    const fixture = TestBed.createComponent(SignUpComponent);
+
+    fixture.componentInstance.form.setValue({ username: 'new.person', password: 'weakpass' });
+    fixture.componentInstance.onSubmit();
+
+    httpMock.expectOne(signUpUrl).flush(
+      { errors: { Password: ['Password is too weak.'] } },
+      { status: 400, statusText: 'Bad Request' },
+    );
+
+    expect(fixture.componentInstance.serverErrors()).toEqual(['Password is too weak.']);
+
+    fixture.detectChanges();
+    const errorEl = fixture.nativeElement.querySelector('.auth-form__error');
+    expect(errorEl?.textContent?.trim()).toBe('Password is too weak.');
+    httpMock.verify();
+  });
 });

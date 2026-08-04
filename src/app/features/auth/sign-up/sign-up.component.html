@@ -23,6 +23,10 @@
     }
   </mat-form-field>
 
+  @if (serverErrors().length > 0) {
+    <p class="auth-form__error">{{ serverErrors()[0] }}</p>
+  }
+
   <button mat-flat-button type="submit">Create account</button>
 
   <p class="auth-form__switch">
