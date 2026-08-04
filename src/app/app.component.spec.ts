@@ -7,6 +7,7 @@ import { Component } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
+import { ThemeService } from './core/theme/theme.service';
 
 @Component({ standalone: true, template: 'dummy' })
 class DummyComponent {}
@@ -24,6 +25,11 @@ describe('AppComponent', () => {
         ]),
       ],
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    document.documentElement.style.colorScheme = '';
   });
 
   it('should create the app', () => {
@@ -52,5 +58,22 @@ describe('AppComponent', () => {
     // Location.path() strips the base href, so the root route reads as '' —
     // NOT '/'. Asserting '/' here fails with "expected '' to be '/'".
     expect(location.path()).toBe('');
+  });
+
+  it('the header toggle button flips the theme', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const themeService = TestBed.inject(ThemeService);
+    fixture.detectChanges();
+
+    expect(themeService.theme()).toBe('light');
+
+    const toggle: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.app-theme-toggle'),
+    ).nativeElement;
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(themeService.theme()).toBe('dark');
+    expect(document.documentElement.style.colorScheme).toBe('dark');
   });
 });

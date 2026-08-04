@@ -1,6 +1,17 @@
 <mat-toolbar color="primary">
   <a class="app-title" routerLink="/">Team Challenge Hub</a>
   <span class="spacer"></span>
+  <button
+    class="app-theme-toggle"
+    mat-icon-button
+    type="button"
+    [attr.aria-label]="
+      themeService.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+    "
+    (click)="themeService.toggle()"
+  >
+    <mat-icon>{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  </button>
   @if (userContext.userId() !== null) {
     <app-user-picker />
   }

@@ -13,6 +13,13 @@
       rel="stylesheet"
     />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <script>
+      // Applied before first paint to avoid a flash of the wrong theme.
+      // ThemeService (src/app/core/theme/theme.service.ts) owns this at runtime;
+      // both must agree on the 'tch_theme' key and the light/dark values.
+      document.documentElement.style.colorScheme =
+        localStorage.getItem('tch_theme') === 'dark' ? 'dark' : 'light';
+    </script>
   </head>
   <body>
     <app-root></app-root>
