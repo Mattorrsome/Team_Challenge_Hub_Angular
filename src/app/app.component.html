@@ -12,13 +12,14 @@
   >
     <mat-icon>{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
   </button>
-  @if (userContext.userId() !== null) {
-    <app-user-picker />
+
+  @if (auth.currentUser(); as user) {
+    @if (auth.isAdmin()) {
+      <a class="app-admin-link" mat-button routerLink="/admin/users">Users</a>
+    }
+    <span class="app-username">{{ user.username }}</span>
+    <button class="app-sign-out" mat-button type="button" (click)="onSignOut()">Sign out</button>
   }
 </mat-toolbar>
 
-@if (userContext.userId() === null) {
-  <app-user-picker />
-} @else {
-  <router-outlet />
-}
+<router-outlet />

@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChallengeApiService } from '../../core/services/challenge-api.service';
-import { UserContextService } from '../../core/user-context/user-context.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { Challenge, ChallengeStatus } from '../../core/models/challenge.model';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 
@@ -36,17 +36,16 @@ const ALL_STATUSES: ChallengeStatus[] = [
 })
 export class ChallengeListComponent {
   private readonly challengeApi = inject(ChallengeApiService);
-  private readonly userContext = inject(UserContextService);
+  private readonly auth = inject(AuthService);
 
   readonly statuses = ALL_STATUSES;
   readonly statusFilter = signal<ChallengeStatus | null>(null);
 
-  // Re-fetches whenever the acting user or the status filter changes, so
-  // switching users via the toolbar picker refreshes the list without a
-  // navigation. The resource supersedes any in-flight request.
+  // Re-fetches whenever the signed-in user or the status filter changes. The
+  // resource supersedes any in-flight request.
   private readonly challengesResource = this.challengeApi.challengesResource(() => ({
     status: this.statusFilter(),
-    userId: this.userContext.userId(),
+    userId: this.auth.currentUser()?.id ?? null,
   }));
 
   readonly challenges: Signal<Challenge[]> = this.challengesResource.value;
