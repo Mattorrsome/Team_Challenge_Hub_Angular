@@ -1,9 +1,12 @@
 .challenge-list {
   padding: 1rem;
+  // Don't stretch edge-to-edge on wide desktops.
+  max-width: 1100px;
 
   &__header {
     display: flex;
-    justify-content: space-between;
+    // Filter and action grouped at the right, per the design.
+    justify-content: flex-end;
     align-items: center;
     margin-bottom: 1rem;
     gap: 1rem;
@@ -27,6 +30,10 @@
   @media (max-width: 600px) {
     &__grid {
       grid-template-columns: 1fr;
+    }
+
+    &__header {
+      flex-wrap: wrap;
     }
   }
 }

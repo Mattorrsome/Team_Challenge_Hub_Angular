@@ -47,3 +47,18 @@ body {
   margin: 0;
   height: 100%;
 }
+
+// Button labels stay on one line by default — a wrapped two-line label in a
+// toolbar or card action row reads as broken. Under the mobile breakpoint the
+// constraint is released, so a long label can wrap rather than overflow a
+// narrow screen.
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button {
+  white-space: nowrap;
+
+  @media (max-width: 600px) {
+    white-space: normal;
+  }
+}
