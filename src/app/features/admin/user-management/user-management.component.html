@@ -1,0 +1,25 @@
+<section class="user-management">
+  <h1 class="user-management__title">Users</h1>
+
+  <ul class="user-management__list">
+    @for (user of users(); track user.id) {
+      <li class="user-management__row">
+        <span class="user-management__username">{{ user.username }}</span>
+        <span class="user-management__name">{{ user.name }}</span>
+
+        <mat-form-field>
+          <mat-label>Role</mat-label>
+          <mat-select [value]="user.role" (valueChange)="onRoleChange(user, $event)">
+            @for (role of roles; track role) {
+              <mat-option [value]="role">{{ role }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-button type="button" (click)="onDelete(user)">Delete</button>
+      </li>
+    } @empty {
+      <li class="user-management__row">No users.</li>
+    }
+  </ul>
+</section>

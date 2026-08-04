@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { adminGuard } from './core/auth/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'challenges', pathMatch: 'full' },
@@ -45,6 +46,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/challenge-detail/challenge-detail.component').then(
         (m) => m.ChallengeDetailComponent,
+      ),
+  },
+  {
+    path: 'admin/users',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('./features/admin/user-management/user-management.component').then(
+        (m) => m.UserManagementComponent,
       ),
   },
 ];
