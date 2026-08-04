@@ -21,7 +21,7 @@
   }
 
   &__empty {
-    color: #757575;
+    color: var(--mat-sys-on-surface-variant);
   }
 
   @media (max-width: 600px) {

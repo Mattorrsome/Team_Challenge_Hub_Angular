@@ -13,7 +13,7 @@
 
   &__raw-notes {
     white-space: pre-wrap;
-    color: #616161;
+    color: var(--mat-sys-on-surface-variant);
   }
 
   &__problem-statement {
@@ -38,7 +38,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
-  color: #616161;
+  color: var(--mat-sys-on-surface-variant);
 
   @media (max-width: 600px) {
     padding: 0.5rem;

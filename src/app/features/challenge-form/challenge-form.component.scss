@@ -6,7 +6,7 @@
   padding: 1rem;
 
   &__server-errors {
-    color: #b71c1c;
+    color: var(--mat-sys-error);
     font-size: 0.875rem;
   }
 

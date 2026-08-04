@@ -5,9 +5,31 @@
   font-size: 0.75rem;
   font-weight: 600;
 
-  &--neutral { background: #e0e0e0; color: #424242; }
-  &--info { background: #bbdefb; color: #0d47a1; }
-  &--warning { background: #ffe0b2; color: #e65100; }
-  &--success { background: #c8e6c9; color: #1b5e20; }
-  &--danger { background: #ffcdd2; color: #b71c1c; }
+  // No M3 system token covers semantic status colors, so each variant is an
+  // explicit light-dark() pair: the light-theme pastel, and a dark-theme fill
+  // dark enough to sit on the app's dark surface with a light foreground.
+  &--neutral {
+    background: light-dark(#e0e0e0, #37414d);
+    color: light-dark(#424242, #e3e6ea);
+  }
+
+  &--info {
+    background: light-dark(#bbdefb, #0d3c61);
+    color: light-dark(#0d47a1, #cfe4fb);
+  }
+
+  &--warning {
+    background: light-dark(#ffe0b2, #5c3a06);
+    color: light-dark(#e65100, #ffdfb0);
+  }
+
+  &--success {
+    background: light-dark(#c8e6c9, #1b4620);
+    color: light-dark(#1b5e20, #c6e7c8);
+  }
+
+  &--danger {
+    background: light-dark(#ffcdd2, #5f1a1f);
+    color: light-dark(#b71c1c, #ffd0d4);
+  }
 }
