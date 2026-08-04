@@ -129,8 +129,14 @@ A `max-width: 600px` breakpoint already exists in
 Run exactly:
 
 ```bash
-npx ng generate @angular/material:theme-color --primaryColor=#007FBA --tertiaryColor=#FFC72C --neutralColor=#070c14 --directory=src/app/styles --isScss=true --includeHighContrast=false
+npx ng generate @angular/material:theme-color --primary-color=#007FBA --tertiary-color=#FFC72C --neutral-color=#070c14 --directory=src/app/styles/ --is-scss=true --include-high-contrast=false
 ```
+
+Two things this invocation gets right that are easy to get wrong: the CLI wants
+**kebab-case** flags (`--primary-color`, not the `primaryColor` spelling used by
+the schematic's `schema.json` properties), and `--directory` needs a **trailing
+slash** — the schematic concatenates `directory + fileName` with no separator,
+so omitting it writes `src/app/styles_theme-colors.scss`.
 
 `#007FBA` seeds the primary (interactive) ramp, `#FFC72C` the tertiary
 (sparse accent) ramp, and `#070c14` the neutral ramp so M3's derived surfaces
@@ -217,9 +223,10 @@ tree:
 grep -rho "light-dark(" dist --include="*.css" | wc -l
 ```
 
-Expected: a count in the hundreds (every system color token). A count of `0`
-means `theme-type: color-scheme` did not take effect — stop and report that
-rather than continuing.
+Expected: **51** — one per M3 color role. (The theme emits ~167 `--mat-sys-*`
+tokens in total; the rest are typography, shape and elevation, which have no
+light/dark variant.) A count of `0` means `theme-type: color-scheme` did not
+take effect — stop and report that rather than continuing.
 
 Also confirm the exact brand surfaces made it through:
 
@@ -694,7 +701,7 @@ Replace the contents of
 
   // No M3 system token covers semantic status colors, so each variant is an
   // explicit light-dark() pair: the light-theme pastel, and a dark-theme fill
-  // dark enough to sit on #070c14 with a light foreground.
+  // dark enough to sit on the app's dark surface with a light foreground.
   &--neutral {
     background: light-dark(#e0e0e0, #37414d);
     color: light-dark(#424242, #e3e6ea);
@@ -727,12 +734,19 @@ Replace the contents of
 Run:
 
 ```bash
-grep -rn "#[0-9a-fA-F]\{3,6\}" --include="*.component.scss" src/app | grep -v "light-dark("
+grep -rn "#[0-9a-fA-F]\{3,6\}" --include="*.component.scss" src/app \
+  | grep -v "light-dark(" | grep -v ":[0-9]*: *//"
 ```
 
 Expected: no output. Any line printed is a hex that still has to be
-converted (`999px` in the stepper is a border-radius, not a color, and will
-not match this pattern).
+converted.
+
+Two exclusions, both deliberate: `light-dark(` lines are the intended
+theme-aware form, and `//` comment lines are skipped because a hex in a
+comment cannot affect rendering — an earlier revision of this plan had a
+comment mentioning a brand hex, which tripped this gate and made the plan
+contradict itself. (`999px` in the stepper is a border-radius, not a color,
+and never matches the pattern.)
 
 - [ ] **Step 4: Confirm the build and tests still pass**
 
