@@ -20,6 +20,12 @@ export class AppComponent {
   private readonly router = inject(Router);
 
   onSignOut(): void {
-    this.auth.signOut().subscribe(() => this.router.navigate(['/sign-in']));
+    this.auth.signOut().subscribe({
+      next: () => this.router.navigate(['/sign-in']),
+      // A failed sign-out leaves the server session live, so staying put is the
+      // honest outcome — navigating to /sign-in would claim we signed out when
+      // we didn't. errorHandlingInterceptor already snackbars the 5xx.
+      error: () => {},
+    });
   }
 }

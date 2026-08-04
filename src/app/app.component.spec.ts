@@ -102,4 +102,29 @@ describe('AppComponent', () => {
     ).toContain('jordan.patel');
     expect(fixture.debugElement.query(By.css('.app-admin-link'))).toBe(null);
   });
+
+  it('does not navigate when sign-out fails', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).signIn('jordan.patel', 'ChangeMe123!').subscribe();
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/auth/signin`)
+      .flush({ id: 2, username: 'jordan.patel', role: 'Collaborator' });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate');
+    fixture.detectChanges();
+
+    const signOutButton: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.app-sign-out'),
+    ).nativeElement;
+    signOutButton.click();
+
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/auth/signout`)
+      .flush({ error: 'Something went wrong.' }, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(navigate).not.toHaveBeenCalled();
+    httpMock.verify();
+  });
 });
