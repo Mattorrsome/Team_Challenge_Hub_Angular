@@ -209,10 +209,12 @@ are emitted on `html`, so the property has to live there.
 Run: `npx ng build`
 Expected: build succeeds with no Sass errors.
 
-Then confirm the tokens really are dual-valued:
+Then confirm the tokens really are dual-valued. `outputPath` is not set in
+`angular.json`, so don't assume the built CSS path — search the whole `dist`
+tree:
 
 ```bash
-grep -c "light-dark(" dist/team-challenge-hub-angular/browser/styles-*.css
+grep -rho "light-dark(" dist --include="*.css" | wc -l
 ```
 
 Expected: a count in the hundreds (every system color token). A count of `0`
@@ -222,10 +224,12 @@ rather than continuing.
 Also confirm the exact brand surfaces made it through:
 
 ```bash
-grep -o "light-dark(#ffffff, *#070c14)" dist/team-challenge-hub-angular/browser/styles-*.css | head -1
+grep -rho "light-dark(#ffffff, *#070c14)" dist --include="*.css" | head -1
 ```
 
-Expected: one match (the `--mat-sys-surface` override).
+Expected: one match (the `--mat-sys-surface` override). If it prints nothing,
+check how Sass emitted the `mat.theme-overrides` values before moving on — the
+override is what pins the brand background exactly.
 
 - [ ] **Step 4: Write the color skill**
 
