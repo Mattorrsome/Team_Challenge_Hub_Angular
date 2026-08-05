@@ -247,6 +247,15 @@ export class AuthService {
       .post<void>(`${this.baseUrl}/signout`, {})
       .pipe(tap(() => this.user.set(null)));
   }
+
+  /**
+   * Drops the cached identity without calling the API — for when the server has
+   * already invalidated the session (a 401 on any authenticated request), so the
+   * guards and header stop trusting state the server has thrown away.
+   */
+  clearCurrentUser(): void {
+    this.user.set(null);
+  }
 }
 ```
 
@@ -254,6 +263,11 @@ export class AuthService {
 
 Run: `npm test -- --watch=false`
 Expected: PASS — 7 new `AuthService` tests, no other suite affected.
+
+Post-review addendum: `clearCurrentUser()` was added after the initial
+implementation (whole-branch review, 2026-08-04) — `errorHandlingInterceptor`'s
+401 branch calls it so a redirect to `/sign-in` also drops the stale
+`currentUser`, not just `signOut()`. See Task 2's Step 4.
 
 - [ ] **Step 6: Commit**
 
@@ -356,10 +370,12 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 
 export const errorHandlingInterceptor: HttpInterceptorFn = (req, next) => {
   const snackBar = inject(MatSnackBar);
   const router = inject(Router);
+  const auth = inject(AuthService);
 
   // /auth/me returns 401 when there's simply no session yet, and /auth/signin
   // returns 401 for bad credentials — both are handled by their callers.
@@ -368,6 +384,7 @@ export const errorHandlingInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !isAuthCall) {
+        auth.clearCurrentUser();
         router.navigate(['/sign-in']);
       } else if (error.status === 409 && !req.url.includes('/users/')) {
         // /users/ 409s mean "that user still owns challenges" — the admin view
@@ -387,6 +404,13 @@ export const errorHandlingInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 ```
+
+Post-review addendum (whole-branch review, 2026-08-04): the API revalidates
+the session on every request, so a stale `currentUser` signal after a 401
+redirect let a deleted/demoted user's toolbar and route guards keep trusting
+cached state the server had already discarded. `auth.clearCurrentUser()` was
+added to the 401 branch above to fix that — see Task 1's `clearCurrentUser()`
+addendum.
 
 - [ ] **Step 5: Rewire `app.config.ts`**
 

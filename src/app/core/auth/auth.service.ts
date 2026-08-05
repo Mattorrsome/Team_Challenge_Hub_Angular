@@ -44,4 +44,13 @@ export class AuthService {
       .post<void>(`${this.baseUrl}/signout`, {})
       .pipe(tap(() => this.user.set(null)));
   }
+
+  /**
+   * Drops the cached identity without calling the API — for when the server has
+   * already invalidated the session (a 401 on any authenticated request), so the
+   * guards and header stop trusting state the server has thrown away.
+   */
+  clearCurrentUser(): void {
+    this.user.set(null);
+  }
 }

@@ -5,12 +5,14 @@ import { provideRouter, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { errorHandlingInterceptor } from './error-handling.interceptor';
+import { AuthService } from '../auth/auth.service';
 
 describe('errorHandlingInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
   let router: Router;
   let snackBar: MatSnackBar;
+  let authService: AuthService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -24,6 +26,7 @@ describe('errorHandlingInterceptor', () => {
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     snackBar = TestBed.inject(MatSnackBar);
+    authService = TestBed.inject(AuthService);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
     vi.spyOn(snackBar, 'open').mockReturnValue({} as ReturnType<MatSnackBar['open']>);
   });
@@ -66,5 +69,31 @@ describe('errorHandlingInterceptor', () => {
       'Dismiss',
       { duration: 5000 },
     );
+  });
+
+  it('clears the cached currentUser on a 401 for a non-auth URL', () => {
+    authService.signIn('alice', 'password').subscribe();
+    httpMock
+      .expectOne('/api/auth/signin')
+      .flush({ id: 1, username: 'alice', role: 'Collaborator' });
+    expect(authService.currentUser()).not.toBeNull();
+
+    http.get('/api/challenges').subscribe({ error: () => {} });
+    httpMock.expectOne('/api/challenges').flush(null, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.currentUser()).toBeNull();
+  });
+
+  it('does not clear a previously-set currentUser on a 401 for /auth/me', () => {
+    authService.signIn('alice', 'password').subscribe();
+    httpMock
+      .expectOne('/api/auth/signin')
+      .flush({ id: 1, username: 'alice', role: 'Collaborator' });
+    expect(authService.currentUser()).not.toBeNull();
+
+    http.get('/api/auth/me').subscribe({ error: () => {} });
+    httpMock.expectOne('/api/auth/me').flush(null, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.currentUser()).not.toBeNull();
   });
 });

@@ -3,10 +3,12 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 
 export const errorHandlingInterceptor: HttpInterceptorFn = (req, next) => {
   const snackBar = inject(MatSnackBar);
   const router = inject(Router);
+  const auth = inject(AuthService);
 
   // /auth/me returns 401 when there's simply no session yet, and /auth/signin
   // returns 401 for bad credentials — both are handled by their callers.
@@ -15,6 +17,7 @@ export const errorHandlingInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !isAuthCall) {
+        auth.clearCurrentUser();
         router.navigate(['/sign-in']);
       } else if (error.status === 409 && !req.url.includes('/users/')) {
         // /users/ 409s mean "that user still owns challenges" — the admin view
