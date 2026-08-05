@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router, provideRouter } from '@angular/router';
 import { Location } from '@angular/common';
 import { Component } from '@angular/core';
@@ -8,6 +8,8 @@ import { By } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { ThemeService } from './core/theme/theme.service';
+import { AuthService } from './core/auth/auth.service';
+import { environment } from '../environments/environment';
 
 @Component({ standalone: true, template: 'dummy' })
 class DummyComponent {}
@@ -75,5 +77,54 @@ describe('AppComponent', () => {
 
     expect(themeService.theme()).toBe('dark');
     expect(document.documentElement.style.colorScheme).toBe('dark');
+  });
+
+  it('shows a sign-in prompt and no username when signed out', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.app-username'))).toBe(null);
+    expect(fixture.debugElement.query(By.css('.app-sign-out'))).toBe(null);
+  });
+
+  it('shows the username and hides the admin link for a collaborator', () => {
+    const auth = TestBed.inject(AuthService);
+    auth.signIn('jordan.patel', 'ChangeMe123!').subscribe();
+    TestBed.inject(HttpTestingController)
+      .expectOne(`${environment.apiBaseUrl}/auth/signin`)
+      .flush({ id: 2, username: 'jordan.patel', role: 'Collaborator' });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('.app-username')).nativeElement.textContent,
+    ).toContain('jordan.patel');
+    expect(fixture.debugElement.query(By.css('.app-admin-link'))).toBe(null);
+  });
+
+  it('does not navigate when sign-out fails', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).signIn('jordan.patel', 'ChangeMe123!').subscribe();
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/auth/signin`)
+      .flush({ id: 2, username: 'jordan.patel', role: 'Collaborator' });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate');
+    fixture.detectChanges();
+
+    const signOutButton: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.app-sign-out'),
+    ).nativeElement;
+    signOutButton.click();
+
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/auth/signout`)
+      .flush({ error: 'Something went wrong.' }, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(navigate).not.toHaveBeenCalled();
+    httpMock.verify();
   });
 });

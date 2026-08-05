@@ -4,12 +4,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 
 import { ChallengeListComponent } from './challenge-list.component';
-import { UserContextService } from '../../core/user-context/user-context.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { environment } from '../../../environments/environment';
 
 describe('ChallengeListComponent', () => {
   let httpMock: HttpTestingController;
-  let userContext: UserContextService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -18,12 +17,12 @@ describe('ChallengeListComponent', () => {
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
-    userContext = TestBed.inject(UserContextService);
-    userContext.setUser(1);
-  });
 
-  afterEach(() => {
-    localStorage.clear();
+    // Establish a signed-in user (id 1) before any component is created.
+    TestBed.inject(AuthService).signIn('alex.kim', 'ChangeMe123!').subscribe();
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/auth/signin`)
+      .flush({ id: 1, username: 'alex.kim', role: 'Admin' });
   });
 
   const listUrl = `${environment.apiBaseUrl}/challenges`;
@@ -75,28 +74,6 @@ describe('ChallengeListComponent', () => {
     expect(req.request.params.get('userId')).toBe('1');
 
     req.flush([]);
-    httpMock.verify();
-  });
-
-  it('re-fetches for the new user when the acting user switches', async () => {
-    TestBed.createComponent(ChallengeListComponent);
-    TestBed.tick();
-
-    const firstReq = httpMock.expectOne((r) => r.url === listUrl);
-    expect(firstReq.request.params.get('userId')).toBe('1');
-    firstReq.flush([]);
-    await Promise.resolve();
-    TestBed.tick();
-
-    userContext.setUser(2);
-    TestBed.tick();
-
-    const secondReq = httpMock.expectOne((r) => r.url === listUrl);
-    expect(secondReq.request.params.get('userId')).toBe('2');
-    secondReq.flush([]);
-    await Promise.resolve();
-    TestBed.tick();
-
     httpMock.verify();
   });
 

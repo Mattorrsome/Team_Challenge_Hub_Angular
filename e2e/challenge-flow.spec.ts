@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test('create challenge, draft problem statement, edit, accept, appears in list', async ({ page }) => {
-  await page.goto('/');
-
-  // Select the first seeded user from the picker.
-  await page.getByRole('button').first().click();
+  await page.goto('/sign-in');
+  await page.getByLabel('Username').fill('alex.kim');
+  await page.getByLabel('Password').fill('ChangeMe123!');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page).toHaveURL(/\/challenges$/);
 
   // Create a challenge.
   await page.getByRole('link', { name: 'New Challenge' }).click();

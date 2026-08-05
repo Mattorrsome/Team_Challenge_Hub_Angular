@@ -1,0 +1,35 @@
+<form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <h1 class="auth-form__title">Create an account</h1>
+
+  <mat-form-field>
+    <mat-label>Username</mat-label>
+    <input matInput formControlName="username" autocomplete="username" />
+    @if (form.controls.username.hasError('server')) {
+      <mat-error>{{ form.controls.username.getError('server') }}</mat-error>
+    } @else if (form.controls.username.touched && form.controls.username.hasError('required')) {
+      <mat-error>Username is required.</mat-error>
+    } @else if (form.controls.username.hasError('maxlength')) {
+      <mat-error>Username must be 50 characters or fewer.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Password</mat-label>
+    <input matInput type="password" formControlName="password" autocomplete="new-password" />
+    @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+      <mat-error>Password is required.</mat-error>
+    } @else if (form.controls.password.hasError('minlength')) {
+      <mat-error>Password must be at least 8 characters.</mat-error>
+    }
+  </mat-form-field>
+
+  @if (serverErrors().length > 0) {
+    <p class="auth-form__error">{{ serverErrors()[0] }}</p>
+  }
+
+  <button mat-flat-button type="submit">Create account</button>
+
+  <p class="auth-form__switch">
+    Already have an account? <a routerLink="/sign-in">Sign in</a>
+  </p>
+</form>
