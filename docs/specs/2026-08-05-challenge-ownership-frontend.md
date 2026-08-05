@@ -46,16 +46,23 @@ Computed in `challenge-detail`, which already holds the loaded challenge.
 
 ### challenge-detail
 
-- The Edit link and the Delete action render only when `canEdit` is true.
-- `solution-options-panel` gains a `canEdit` input; its add, delete, and select
-  controls render only when true.
-- `problem-statement-panel`'s draft and "Accept & Save" controls are likewise
-  owner-only. "Accept & Save" issues `PUT /api/challenges/{id}`, which the API
-  now gates. The two `draft-*` endpoints themselves stay open server-side —
-  they are read-only and write nothing — but drafting exists only to feed that
-  gated save, so offering it to a non-owner would be a dead end. Hiding the
-  draft control is a UX decision, not an authorization one, and the API
-  deliberately does not gate it.
+- The "Edit Title" link renders only when `canEdit` is true. There is no Delete
+  control to hide: `DELETE /api/challenges/{id}` and
+  `DELETE /api/challenges/{id}/options/{optionId}` have no UI at all today and
+  aren't even in `challenge-api.service.ts`. They are still gated server-side.
+- `problem-statement-panel` is hidden wholesale for a non-owner. Everything in
+  it is an editing affordance, and the parent template already renders the
+  accepted problem statement in its own read-only section — so a non-owner
+  loses nothing by not seeing the panel.
+- `solution-options-panel` gains a `canEdit` input, because it is the only place
+  accepted options are displayed. When false it renders the heading and the
+  read-only accepted-options list, and hides the draft button, the draft
+  editors, and the Select buttons.
+- The two `draft-*` endpoints stay open server-side — they are read-only and
+  write nothing — but drafting exists only to feed the gated
+  `PUT /api/challenges/{id}` save, so offering it to a non-owner would be a dead
+  end. Hiding draft controls is a UX decision, not an authorization one, and
+  the API deliberately does not gate them.
 - `status-stepper` is untouched. Its buttons stay driven by what the API allows,
   exactly as `2026-07-27-frontend-design.md` requires.
 
