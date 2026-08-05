@@ -1447,6 +1447,67 @@ describe('UserManagementComponent', () => {
 
     expect(open).toHaveBeenCalled();
     expect(open.mock.calls[0][0]).toContain('challenges');
+    expect(open.mock.calls[0][0]).toContain('jordan.patel');
+    httpMock.verify();
+  });
+
+  it('shows a snackbar when deleting a user is forbidden', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    httpMock.expectOne(`${usersUrl}/2`).flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(open).toHaveBeenCalled();
+    httpMock.verify();
+  });
+
+  it('does not open a local snackbar for a 500 on delete', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    httpMock
+      .expectOne(`${usersUrl}/2`)
+      .flush(null, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(open).not.toHaveBeenCalled();
+    httpMock.verify();
+  });
+
+  it('shows a snackbar and does not reload when a role change fails', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onRoleChange(seeded[1], 'Admin');
+
+    httpMock
+      .expectOne(`${usersUrl}/2/role`)
+      .flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(open).toHaveBeenCalled();
+    httpMock.verify();
+  });
+
+  it('shows a snackbar and keeps the stale list when the reload fails', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    httpMock
+      .expectOne(`${usersUrl}/2`)
+      .flush(null, { status: 204, statusText: 'No Content' });
+    httpMock.expectOne(usersUrl).flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(open).toHaveBeenCalled();
+    expect(fixture.componentInstance.users().length).toBe(2);
     httpMock.verify();
   });
 });
@@ -1541,7 +1602,11 @@ export class UserManagementComponent {
 
   onRoleChange(user: User, role: UserRole): void {
     if (role === user.role) return;
-    this.userApi.updateRole(user.id, role).subscribe(() => this.reload());
+    this.userApi.updateRole(user.id, role).subscribe({
+      next: () => this.reload(),
+      error: (err: HttpErrorResponse) =>
+        this.notifyFailure(err, `Could not change ${user.username}'s role.`),
+    });
   }
 
   onDelete(user: User): void {
@@ -1550,19 +1615,32 @@ export class UserManagementComponent {
       error: (err: HttpErrorResponse) => {
         // The API blocks deleting an owner rather than cascading. The global
         // interceptor skips 409s on /users/ so this message wins.
-        if (err.status === 409) {
-          this.snackBar.open(
-            `${user.username} still owns challenges — remove those first.`,
-            'Dismiss',
-            { duration: 5000 },
-          );
-        }
+        const message =
+          err.status === 409
+            ? `${user.username} still owns challenges — remove those first.`
+            : `Could not delete ${user.username}.`;
+        this.notifyFailure(err, message);
       },
     });
   }
 
   private reload(): void {
-    this.userApi.getUsers().subscribe((users) => this.users.set(users));
+    this.userApi.getUsers().subscribe({
+      next: (users) => this.users.set(users),
+      error: (err: HttpErrorResponse) => this.notifyFailure(err, 'Could not load users.'),
+    });
+  }
+
+  /**
+   * Surfaces failures the global interceptor deliberately leaves alone: it
+   * redirects on 401 and snackbars 5xx, and skips 409 entirely for /users/
+   * URLs so this view can speak for itself.
+   */
+  private notifyFailure(err: HttpErrorResponse, message: string): void {
+    if (err.status === 401 || err.status >= 500) {
+      return;
+    }
+    this.snackBar.open(message, 'Dismiss', { duration: 5000 });
   }
 }
 ```
@@ -1658,7 +1736,7 @@ and add this route after the `challenges/:id` entry:
 - [ ] **Step 7: Run the tests to verify they pass**
 
 Run: `npm test -- --watch=false`
-Expected: PASS — 4 new user-management tests, full suite green.
+Expected: PASS — 8 new user-management tests, full suite green.
 
 - [ ] **Step 8: Commit**
 

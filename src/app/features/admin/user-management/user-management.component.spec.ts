@@ -80,6 +80,67 @@ describe('UserManagementComponent', () => {
 
     expect(open).toHaveBeenCalled();
     expect(open.mock.calls[0][0]).toContain('challenges');
+    expect(open.mock.calls[0][0]).toContain('jordan.patel');
+    httpMock.verify();
+  });
+
+  it('shows a snackbar when deleting a user is forbidden', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    httpMock.expectOne(`${usersUrl}/2`).flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(open).toHaveBeenCalled();
+    httpMock.verify();
+  });
+
+  it('does not open a local snackbar for a 500 on delete', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    httpMock
+      .expectOne(`${usersUrl}/2`)
+      .flush(null, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(open).not.toHaveBeenCalled();
+    httpMock.verify();
+  });
+
+  it('shows a snackbar and does not reload when a role change fails', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onRoleChange(seeded[1], 'Admin');
+
+    httpMock
+      .expectOne(`${usersUrl}/2/role`)
+      .flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(open).toHaveBeenCalled();
+    httpMock.verify();
+  });
+
+  it('shows a snackbar and keeps the stale list when the reload fails', () => {
+    const fixture = create();
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi.spyOn(snackBar, 'open');
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    httpMock
+      .expectOne(`${usersUrl}/2`)
+      .flush(null, { status: 204, statusText: 'No Content' });
+    httpMock.expectOne(usersUrl).flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(open).toHaveBeenCalled();
+    expect(fixture.componentInstance.users().length).toBe(2);
     httpMock.verify();
   });
 });

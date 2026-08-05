@@ -31,7 +31,11 @@ export class UserManagementComponent {
 
   onRoleChange(user: User, role: UserRole): void {
     if (role === user.role) return;
-    this.userApi.updateRole(user.id, role).subscribe(() => this.reload());
+    this.userApi.updateRole(user.id, role).subscribe({
+      next: () => this.reload(),
+      error: (err: HttpErrorResponse) =>
+        this.notifyFailure(err, `Could not change ${user.username}'s role.`),
+    });
   }
 
   onDelete(user: User): void {
@@ -40,18 +44,31 @@ export class UserManagementComponent {
       error: (err: HttpErrorResponse) => {
         // The API blocks deleting an owner rather than cascading. The global
         // interceptor skips 409s on /users/ so this message wins.
-        if (err.status === 409) {
-          this.snackBar.open(
-            `${user.username} still owns challenges — remove those first.`,
-            'Dismiss',
-            { duration: 5000 },
-          );
-        }
+        const message =
+          err.status === 409
+            ? `${user.username} still owns challenges — remove those first.`
+            : `Could not delete ${user.username}.`;
+        this.notifyFailure(err, message);
       },
     });
   }
 
   private reload(): void {
-    this.userApi.getUsers().subscribe((users) => this.users.set(users));
+    this.userApi.getUsers().subscribe({
+      next: (users) => this.users.set(users),
+      error: (err: HttpErrorResponse) => this.notifyFailure(err, 'Could not load users.'),
+    });
+  }
+
+  /**
+   * Surfaces failures the global interceptor deliberately leaves alone: it
+   * redirects on 401 and snackbars 5xx, and skips 409 entirely for /users/
+   * URLs so this view can speak for itself.
+   */
+  private notifyFailure(err: HttpErrorResponse, message: string): void {
+    if (err.status === 401 || err.status >= 500) {
+      return;
+    }
+    this.snackBar.open(message, 'Dismiss', { duration: 5000 });
   }
 }
