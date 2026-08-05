@@ -17,6 +17,11 @@ introduces collaborator/admin roles with admin-only user management.
 
 ## Scope
 
+> **Extended by `2026-08-05-challenge-ownership-frontend.md`,** which hides
+> owner-only controls on challenges the current user cannot edit, unscopes the
+> challenge list for admins, and adds the 403 branch this spec's interceptor
+> lacks.
+
 In scope:
 - Sign-up and sign-in forms (username + password)
 - Replacing the user-picker/header-based identity with a real session
