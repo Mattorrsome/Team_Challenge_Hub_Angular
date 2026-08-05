@@ -1782,7 +1782,9 @@ test('sign up, create a challenge, sign out, sign back in, challenge persists', 
 
   // Landed on the list, scoped to this brand-new user — so it's empty.
   await expect(page).toHaveURL(/\/challenges$/);
-  await expect(page.getByText(title)).toHaveCount(0);
+  // A brand-new user's list is empty because the fetch is scoped to their id.
+  // An unscoped list would show the seeded users' challenges instead.
+  await expect(page.getByText('No challenges yet.')).toBeVisible();
 
   await page.getByRole('link', { name: 'New Challenge' }).click();
   await page.getByLabel('Title').fill(title);
@@ -1809,7 +1811,10 @@ test('a collaborator gets no admin link and is redirected away from /admin/users
   await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page).toHaveURL(/\/challenges$/);
 
-  await expect(page.getByRole('link', { name: 'Users' })).toHaveCount(0);
+  // Wait for the toolbar to render before asserting the admin link's absence,
+  // so a not-yet-painted nav can't make this pass for the wrong reason.
+  await expect(page.locator('.app-username')).toHaveText(username);
+  await expect(page.getByRole('link', { name: 'Users' })).toBeHidden();
 
   await page.goto('/admin/users');
   await expect(page).toHaveURL(/\/challenges$/);
