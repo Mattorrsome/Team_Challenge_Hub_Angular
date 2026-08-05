@@ -52,7 +52,7 @@ src/app/
   core/
     models/              # Challenge, SolutionOption, User, Status enum — mirrors API DTOs
     services/            # challenge-api.service.ts, user-api.service.ts
-    user-context/         # current "acting as" user, persisted to localStorage
+    auth/                # auth.service.ts, auth.guard.ts, admin.guard.ts, models/auth-user.model.ts
   features/
     challenge-list/
     challenge-form/       # shared create/edit form component
@@ -60,6 +60,11 @@ src/app/
       problem-statement-panel/
       solution-options-panel/
       status-stepper/
+    auth/
+      sign-in/
+      sign-up/
+    admin/
+      user-management/    # admin-only: list users, change role, delete
   shared/
     status-badge/
 ```
@@ -69,9 +74,14 @@ contract is documented in both specs, not code-shared (scale doesn't justify it)
 
 ### Data flow
 
-- No real auth. On load, a user picker (`GET /api/users`) selects an acting
-  user, stored in `localStorage` and attached as `X-User-Id` on every request
-  via an `HttpInterceptor`.
+- Real credential auth. `AuthService` resolves the session via `GET
+  /api/auth/me` in an app initializer before the first navigation; the session
+  is an HttpOnly cookie, so `credentialsInterceptor` sets `withCredentials:
+  true` on every request and no token is ever handled in application code.
+  `authGuard` protects every route except `/sign-in` and `/sign-up`;
+  `adminGuard` protects `/admin/users`. A 401 on any non-`/auth/` call
+  redirects to `/sign-in`. Two roles: `Collaborator` (default) and `Admin` —
+  only user management is role-gated.
 - Challenge status flow: `Submitted → ProblemStatementDrafted → OptionsDrafted
   → OptionSelected → InReview → Approved` (or `Rejected` from `InReview`).
 - **AI draft endpoints are read-only on the server** — `draft-problem-statement`
@@ -102,6 +112,7 @@ contract is documented in both specs, not code-shared (scale doesn't justify it)
 
 ## Scope boundaries
 
-Out of scope for this app: real authentication/authorization, real-time
-multi-user collaboration, notifications/email, pagination (small demo
-dataset — list loads all challenges at once). Don't build toward these.
+Out of scope for this app: password reset, email verification, MFA, and
+sign-in rate limiting, real-time multi-user collaboration, notifications/email,
+pagination (small demo dataset — list loads all challenges at once). Don't
+build toward these.
