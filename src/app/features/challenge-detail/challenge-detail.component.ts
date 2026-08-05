@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChallengeApiService } from '../../core/services/challenge-api.service';
 import { Challenge } from '../../core/models/challenge.model';
+import { AuthService } from '../../core/auth/auth.service';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 import { StatusStepperComponent } from './status-stepper/status-stepper.component';
 import { ProblemStatementPanelComponent } from './problem-statement-panel/problem-statement-panel.component';
@@ -30,9 +31,22 @@ type DetailPanel = 'problem-statement' | 'solution-options' | 'none';
 export class ChallengeDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly challengeApi = inject(ChallengeApiService);
+  private readonly auth = inject(AuthService);
 
   readonly challenge = signal<Challenge | null>(null);
   readonly loadFailed = signal(false);
+
+  // A challenge's content is owned; its workflow is shared. This mirrors the
+  // API's rule so the UI doesn't offer writes that would 403 — it is an
+  // affordance, not a security boundary.
+  readonly canEdit = computed(() => {
+    const challenge = this.challenge();
+    const user = this.auth.currentUser();
+    if (challenge === null || user === null) {
+      return false;
+    }
+    return this.auth.isAdmin() || challenge.submittedByUserId === user.id;
+  });
 
   readonly currentPanel = computed<DetailPanel>(() => {
     switch (this.challenge()?.status) {

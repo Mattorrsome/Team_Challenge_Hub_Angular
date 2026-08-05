@@ -3,7 +3,9 @@
     <div class="challenge-detail__header">
       <h2>{{ c.title }}</h2>
       <app-status-badge [status]="c.status" />
-      <a mat-button [routerLink]="['/challenges', c.id, 'edit']">Edit Title</a>
+      @if (canEdit()) {
+        <a mat-button [routerLink]="['/challenges', c.id, 'edit']">Edit Title</a>
+      }
     </div>
 
     <p class="challenge-detail__raw-notes">{{ c.rawNotes }}</p>
@@ -19,10 +21,16 @@
 
     @switch (currentPanel()) {
       @case ('problem-statement') {
-        <app-problem-statement-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+        @if (canEdit()) {
+          <app-problem-statement-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+        }
       }
       @case ('solution-options') {
-        <app-solution-options-panel [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+        <app-solution-options-panel
+          [challenge]="c"
+          [canEdit]="canEdit()"
+          (challengeUpdated)="onChallengeUpdated($event)"
+        />
       }
     }
   </div>

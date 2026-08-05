@@ -6,6 +6,7 @@ import { By } from '@angular/platform-browser';
 import { ChallengeDetailComponent } from './challenge-detail.component';
 import { environment } from '../../../environments/environment';
 import { Challenge, ChallengeStatus } from '../../core/models/challenge.model';
+import { AuthService } from '../../core/auth/auth.service';
 
 describe('ChallengeDetailComponent', () => {
   let fixture: ComponentFixture<ChallengeDetailComponent>;
@@ -53,6 +54,11 @@ describe('ChallengeDetailComponent', () => {
     return req;
   }
 
+  function signInAs(id: number, username: string, role: 'Collaborator' | 'Admin') {
+    TestBed.inject(AuthService).signIn(username, 'ChangeMe123!').subscribe();
+    httpMock.expectOne(`${environment.apiBaseUrl}/auth/signin`).flush({ id, username, role });
+  }
+
   it('should create', () => {
     expectLoadRequest().flush(fakeChallenge);
     expect(component).toBeTruthy();
@@ -83,6 +89,8 @@ describe('ChallengeDetailComponent', () => {
   ];
 
   it.each(panelCases)('shows only the %s panel for status %s', (status, expected) => {
+    // Seeded as the owner: this test exercises panel-switching by status, not ownership.
+    signInAs(1, 'alex.kim', 'Collaborator');
     expectLoadRequest().flush({ ...fakeChallenge, status });
     fixture.detectChanges();
 
@@ -115,5 +123,41 @@ describe('ChallengeDetailComponent', () => {
     expect(
       fixture.debugElement.query(By.css('.challenge-detail__problem-statement')),
     ).toBeNull();
+  });
+
+  it('lets the owner edit', () => {
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(component.canEdit()).toBe(true);
+    expect(fixture.debugElement.query(By.css('.challenge-detail__header a'))).not.toBe(null);
+  });
+
+  it('hides the edit link from a non-owner collaborator', () => {
+    signInAs(2, 'jordan.patel', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(component.canEdit()).toBe(false);
+    expect(fixture.debugElement.query(By.css('.challenge-detail__header a'))).toBe(null);
+  });
+
+  it('lets an admin edit someone else\'s challenge', () => {
+    signInAs(2, 'jordan.patel', 'Admin');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(component.canEdit()).toBe(true);
+    expect(fixture.debugElement.query(By.css('.challenge-detail__header a'))).not.toBe(null);
+  });
+
+  it('hides the problem-statement panel from a non-owner', () => {
+    signInAs(2, 'jordan.patel', 'Collaborator');
+    // fakeChallenge is Submitted, so currentPanel() is 'problem-statement'.
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('app-problem-statement-panel'))).toBe(null);
   });
 });
