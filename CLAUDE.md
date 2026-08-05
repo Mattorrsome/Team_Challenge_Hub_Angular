@@ -37,11 +37,17 @@ matchers (e.g. `.toBe(true)`, not Jasmine's `toBeTrue()`).
 
 `proxy.conf.json` targets the sibling API's real Kestrel dev port,
 `https://localhost:7261` (`http://localhost:5179` is the documented fallback if
-the dev HTTPS certificate causes trouble). Task 14's Playwright e2e test
-(`e2e/challenge-flow.spec.ts`) needs that backend running alongside `ng serve`
-— start it with `dotnet run --project src/TeamChallengeHub.Api
---launch-profile https` in the sibling repo, then `npm run e2e`. Note it writes
-to the API's dev SQLite database, so the challenges it creates persist there.
+the dev HTTPS certificate causes trouble). The Playwright e2e tests
+(`e2e/challenge-flow.spec.ts`, `e2e/auth-flow.spec.ts`) need that backend
+running alongside `ng serve` — start it with `dotnet run --project
+src/TeamChallengeHub.Api --launch-profile http` in the sibling repo, then `npm
+run e2e`. It must be the `http` profile, not `https`: the `https` profile binds
+both ports, so `UseHttpsRedirection()` 307s a proxied request on 5179 to the
+HTTPS origin — cross-origin from the browser's view, which drops the
+`SameSite=Lax` session cookie and fails every authenticated request. The
+`http` profile binds only 5179, so there's no HTTPS port to redirect to and
+requests stay same-origin. Note it writes to the API's dev SQLite database, so
+the challenges and users it creates persist there.
 
 ## Architecture
 
