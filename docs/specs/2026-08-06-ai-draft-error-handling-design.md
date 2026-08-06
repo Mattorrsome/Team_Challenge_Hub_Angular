@@ -73,27 +73,35 @@ requestDraft(): void {
     },
     error: (error: HttpErrorResponse) => {
       this.isDrafting.set(false);
-      this.draftError.set(
-        error.error?.error ?? 'AI drafting is unavailable. Write the statement manually or try again.',
-      );
+      const message = typeof error.error?.error === 'string' ? error.error.error : null;
+      this.draftError.set(message ?? 'AI drafting is unavailable. Please try again.');
     },
   });
 }
 ```
 
 The fallback string matters: it covers a network failure or a proxy error, where
-there is no server body to read a message from.
+there is no server body to read a message from, and a non-string body (`error.error`
+is typed `any`, so a shape like `{ "error": { "code": 1 } }` type-checks but must not
+render). The fallback wording avoids telling the user to write the content manually —
+neither panel renders an editable field in the state a draft failure leaves it in,
+so there is no manual path to point to.
 
 Each template renders the message beside its generate button, and only when set:
 
 ```html
 @if (draftError()) {
-  <p class="draft-error">{{ draftError() }}</p>
+  <p class="problem-statement-panel__error" role="alert">{{ draftError() }}</p>
 }
 ```
 
+The paragraph carries `role="alert"` because it is the only failure signal for this
+flow: the generic ≥ 500 snackbar is deliberately excluded for `/draft-` calls, so a
+screen reader user has nothing else announcing that the request failed.
+
 `solution-options-panel` is identical apart from the signal being cleared in
-`requestDrafts()` and its own fallback wording ("write the options manually").
+`requestDrafts()` and its own BEM class (`solution-options-panel__error`). Both
+panels share the same fallback string.
 
 Both panels keep `OnPush`; a signal read in the template is enough to refresh.
 

@@ -163,9 +163,7 @@ Then add these tests inside the existing `describe` block:
       .expectOne('/api/challenges/1/draft-problem-statement')
       .flush(null, { status: 503, statusText: 'Service Unavailable' });
 
-    expect(component.draftError()).toBe(
-      'AI drafting is unavailable. Write the statement manually or try again.',
-    );
+    expect(component.draftError()).toBe('AI drafting is unavailable. Please try again.');
   });
 
   it('clears the error when a later draft succeeds', () => {
@@ -223,11 +221,10 @@ Replace `requestDraft()` (lines 47-58) with:
       error: (error: HttpErrorResponse) => {
         this.isDrafting.set(false);
         // The API sends { error: "..." } on a 503. The fallback covers a
-        // network or proxy failure, where there is no body to read.
-        this.draftError.set(
-          error.error?.error ??
-            'AI drafting is unavailable. Write the statement manually or try again.',
-        );
+        // network or proxy failure, where there is no body to read, and a
+        // non-string body (error.error is `any`, so it isn't guaranteed).
+        const message = typeof error.error?.error === 'string' ? error.error.error : null;
+        this.draftError.set(message ?? 'AI drafting is unavailable. Please try again.');
       },
     });
   }
@@ -239,20 +236,29 @@ In `src/app/features/challenge-detail/problem-statement-panel/problem-statement-
 
 ```html
   @if (draftError()) {
-    <p class="problem-statement-panel__error">{{ draftError() }}</p>
+    <p class="problem-statement-panel__error" role="alert">{{ draftError() }}</p>
   }
 ```
 
-Placing it after the whole conditional rather than inside the button branch keeps it visible regardless of which branch renders.
+Placing it after the whole conditional rather than inside the button branch keeps it visible regardless of which branch renders. `role="alert"` matters here: the generic ≥ 500 snackbar is excluded for `/draft-` calls (Task 1), so this paragraph is the only signal a screen reader user gets that the request failed.
 
 - [ ] **Step 5: Style it**
 
-Append to `src/app/features/challenge-detail/problem-statement-panel/problem-statement-panel.component.scss`:
+Nest the error rule inside the parent selector, matching `challenge-form.component.scss`'s `&__server-errors` convention, using the theme token instead of a literal hex so it stays readable in dark mode:
 
 ```scss
-.problem-statement-panel__error {
-  color: #b3261e;
-  margin: 8px 0 0;
+.problem-statement-panel {
+  padding: 1rem 0;
+
+  &__field {
+    width: 100%;
+  }
+
+  &__error {
+    color: var(--mat-sys-error);
+    font-size: 0.875rem;
+    margin: 8px 0 0;
+  }
 }
 ```
 
@@ -322,9 +328,7 @@ Add these tests inside the existing `describe` block:
       .expectOne('/api/challenges/1/draft-solution-options')
       .flush(null, { status: 503, statusText: 'Service Unavailable' });
 
-    expect(component.draftError()).toBe(
-      'AI drafting is unavailable. Write the options manually or try again.',
-    );
+    expect(component.draftError()).toBe('AI drafting is unavailable. Please try again.');
   });
 
   it('clears the error when a later draft succeeds', () => {
@@ -380,11 +384,10 @@ Replace `requestDrafts()` (lines 38-49) with:
       error: (error: HttpErrorResponse) => {
         this.isDrafting.set(false);
         // The API sends { error: "..." } on a 503. The fallback covers a
-        // network or proxy failure, where there is no body to read.
-        this.draftError.set(
-          error.error?.error ??
-            'AI drafting is unavailable. Write the options manually or try again.',
-        );
+        // network or proxy failure, where there is no body to read, and a
+        // non-string body (error.error is `any`, so it isn't guaranteed).
+        const message = typeof error.error?.error === 'string' ? error.error.error : null;
+        this.draftError.set(message ?? 'AI drafting is unavailable. Please try again.');
       },
     });
   }
@@ -396,18 +399,49 @@ In `src/app/features/challenge-detail/solution-options-panel/solution-options-pa
 
 ```html
   @if (draftError()) {
-    <p class="solution-options-panel__error">{{ draftError() }}</p>
+    <p class="solution-options-panel__error" role="alert">{{ draftError() }}</p>
   }
 ```
 
+`role="alert"` matters here for the same reason as the problem statement panel: the generic ≥ 500 snackbar is excluded for `/draft-` calls, so this paragraph is the only failure signal a screen reader user gets.
+
 - [ ] **Step 5: Style it**
 
-Append to `src/app/features/challenge-detail/solution-options-panel/solution-options-panel.component.scss`:
+Nest the error rule inside the parent selector, using the theme token instead of a literal hex so it stays readable in dark mode:
 
 ```scss
-.solution-options-panel__error {
-  color: #b3261e;
-  margin: 8px 0 0;
+.solution-options-panel {
+  padding: 1rem 0;
+
+  &__field {
+    width: 100%;
+  }
+
+  &__draft {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  &__accepted {
+    list-style: none;
+    padding: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--mat-sys-outline-variant);
+    }
+  }
+
+  &__error {
+    color: var(--mat-sys-error);
+    font-size: 0.875rem;
+    margin: 8px 0 0;
+  }
 }
 ```
 
