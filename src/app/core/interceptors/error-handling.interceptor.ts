@@ -19,6 +19,10 @@ export const errorHandlingInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401 && !isAuthCall) {
         auth.clearCurrentUser();
         router.navigate(['/sign-in']);
+      } else if (error.status === 403) {
+        // Deliberately no redirect — that's 401's job. Bouncing on a 403 would
+        // throw an admin off /admin/users over one transient failure.
+        snackBar.open("You don't have permission to do that.", 'Dismiss', { duration: 5000 });
       } else if (error.status === 409 && !req.url.includes('/users/')) {
         // /users/ 409s mean "that user still owns challenges" — the admin view
         // surfaces its own message for those.

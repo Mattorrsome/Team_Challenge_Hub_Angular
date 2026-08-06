@@ -27,6 +27,9 @@ export class SolutionOptionsPanelComponent {
     return this.challengeSignal()!;
   }
 
+  /** False for a non-owner: the accepted options stay visible, the controls don't. */
+  @Input() canEdit = false;
+
   @Output() challengeUpdated = new EventEmitter<Challenge>();
 
   readonly draftOptions = signal<string[]>([]);

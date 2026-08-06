@@ -42,10 +42,11 @@ export class ChallengeListComponent {
   readonly statusFilter = signal<ChallengeStatus | null>(null);
 
   // Re-fetches whenever the signed-in user or the status filter changes. The
-  // resource supersedes any in-flight request.
+  // resource supersedes any in-flight request. Admins see every challenge —
+  // otherwise their edit override would be unreachable through the UI.
   private readonly challengesResource = this.challengeApi.challengesResource(() => ({
     status: this.statusFilter(),
-    userId: this.auth.currentUser()?.id ?? null,
+    userId: this.auth.isAdmin() ? null : (this.auth.currentUser()?.id ?? null),
   }));
 
   readonly challenges: Signal<Challenge[]> = this.challengesResource.value;

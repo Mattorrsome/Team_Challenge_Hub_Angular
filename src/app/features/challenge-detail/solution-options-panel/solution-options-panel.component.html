@@ -1,25 +1,27 @@
 <div class="solution-options-panel">
   <h3>Solution Options</h3>
 
-  @if (challenge.problemStatement) {
+  @if (canEdit && challenge.problemStatement) {
     <button mat-raised-button (click)="requestDrafts()" [disabled]="isDrafting()">
       {{ isDrafting() ? 'Drafting…' : 'Draft Solution Options' }}
     </button>
   }
 
-  @for (draft of draftOptions(); track $index) {
-    <div class="solution-options-panel__draft">
-      <mat-form-field appearance="outline" class="solution-options-panel__field">
-        <mat-label>Option (editable)</mat-label>
-        <textarea
-          matInput
-          rows="3"
-          [ngModel]="draft"
-          (ngModelChange)="updateDraft($index, $event)"
-        ></textarea>
-      </mat-form-field>
-      <button mat-raised-button color="primary" (click)="acceptDraft($index)">Accept & Save</button>
-    </div>
+  @if (canEdit) {
+    @for (draft of draftOptions(); track $index) {
+      <div class="solution-options-panel__draft">
+        <mat-form-field appearance="outline" class="solution-options-panel__field">
+          <mat-label>Option (editable)</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            [ngModel]="draft"
+            (ngModelChange)="updateDraft($index, $event)"
+          ></textarea>
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="acceptDraft($index)">Accept & Save</button>
+      </div>
+    }
   }
 
   @if (challenge.options.length > 0) {
@@ -29,7 +31,7 @@
           <span>{{ option.text }}</span>
           @if (option.isSelected) {
             <strong>Selected</strong>
-          } @else if (challenge.status === 'OptionsDrafted') {
+          } @else if (canEdit && challenge.status === 'OptionsDrafted') {
             <button mat-button (click)="selectOption(option.id)">Select</button>
           }
         </li>

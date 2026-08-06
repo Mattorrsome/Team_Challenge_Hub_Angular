@@ -22,7 +22,7 @@ describe('ChallengeListComponent', () => {
     TestBed.inject(AuthService).signIn('alex.kim', 'ChangeMe123!').subscribe();
     httpMock
       .expectOne(`${environment.apiBaseUrl}/auth/signin`)
-      .flush({ id: 1, username: 'alex.kim', role: 'Admin' });
+      .flush({ id: 1, username: 'alex.kim', role: 'Collaborator' });
   });
 
   const listUrl = `${environment.apiBaseUrl}/challenges`;
@@ -90,6 +90,23 @@ describe('ChallengeListComponent', () => {
     const req = httpMock.expectOne((r) => r.url === listUrl);
     expect(req.request.params.get('status')).toBe('Approved');
     expect(req.request.params.get('userId')).toBe('1');
+
+    req.flush([]);
+    httpMock.verify();
+  });
+
+  it('omits the userId filter for an admin so all challenges are listed', () => {
+    // The beforeEach signed in a Collaborator; replace that session with an Admin.
+    TestBed.inject(AuthService).signIn('alex.kim', 'ChangeMe123!').subscribe();
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/auth/signin`)
+      .flush({ id: 1, username: 'alex.kim', role: 'Admin' });
+
+    TestBed.createComponent(ChallengeListComponent);
+    TestBed.tick();
+
+    const req = httpMock.expectOne((r) => r.url === listUrl);
+    expect(req.request.params.has('userId')).toBe(false);
 
     req.flush([]);
     httpMock.verify();

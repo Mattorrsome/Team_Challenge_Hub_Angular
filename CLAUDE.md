@@ -88,6 +88,13 @@ contract is documented in both specs, not code-shared (scale doesn't justify it)
   `adminGuard` protects `/admin/users`. A 401 on any non-`/auth/` call
   redirects to `/sign-in`. Two roles: `Collaborator` (default) and `Admin` —
   only user management is role-gated.
+- A challenge's content is owned, its workflow is shared. Only the owner
+  (`submittedByUserId`) or an `Admin` may change a challenge's title, problem
+  statement, or options — the API returns 403 otherwise, and
+  `challenge-detail` hides those controls via its `canEdit` computed. Status
+  transitions stay open to every signed-in user, so a challenge can be reviewed
+  by someone other than its author. The challenge list is scoped to the signed-in
+  user, except for admins, who see every challenge.
 - Challenge status flow: `Submitted → ProblemStatementDrafted → OptionsDrafted
   → OptionSelected → InReview → Approved` (or `Rejected` from `InReview`).
 - **AI draft endpoints are read-only on the server** — `draft-problem-statement`

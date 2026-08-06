@@ -71,6 +71,20 @@ describe('errorHandlingInterceptor', () => {
     );
   });
 
+  it('opens a snackbar on a 403 and does not navigate', () => {
+    const open = vi.spyOn(snackBar, 'open');
+    const navigate = vi.spyOn(router, 'navigate');
+
+    http.put('/api/challenges/1', { title: 'Not mine' }).subscribe({ error: () => {} });
+    httpMock
+      .expectOne('/api/challenges/1')
+      .flush({ error: 'forbidden' }, { status: 403, statusText: 'Forbidden' });
+
+    expect(open).toHaveBeenCalled();
+    expect(open.mock.calls[0][0]).toContain('permission');
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('clears the cached currentUser on a 401 for a non-auth URL', () => {
     authService.signIn('alice', 'password').subscribe();
     httpMock
