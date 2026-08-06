@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,6 +39,8 @@ export class ProblemStatementPanelComponent {
 
   readonly draftText = signal('');
   readonly isDrafting = signal(false);
+  /** Server message from a failed draft request, shown inline. */
+  readonly draftError = signal<string | null>(null);
 
   updateDraftText(text: string): void {
     this.hasUserEdited = true;
@@ -46,13 +49,20 @@ export class ProblemStatementPanelComponent {
 
   requestDraft(): void {
     this.isDrafting.set(true);
+    this.draftError.set(null);
     this.challengeApi.draftProblemStatement(this.challenge.id).subscribe({
       next: (response) => {
         this.draftText.set(response.problemStatement);
         this.isDrafting.set(false);
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.isDrafting.set(false);
+        // The API sends { error: "..." } on a 503. The fallback covers a
+        // network or proxy failure, where there is no body to read.
+        this.draftError.set(
+          error.error?.error ??
+            'AI drafting is unavailable. Write the statement manually or try again.',
+        );
       },
     });
   }

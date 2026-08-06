@@ -12,4 +12,8 @@
     </mat-form-field>
     <button mat-raised-button color="primary" (click)="acceptAndSave()">Accept & Save</button>
   }
+
+  @if (draftError()) {
+    <p class="problem-statement-panel__error">{{ draftError() }}</p>
+  }
 </div>
