@@ -31,7 +31,11 @@ export const errorHandlingInterceptor: HttpInterceptorFn = (req, next) => {
           'Dismiss',
           { duration: 5000 },
         );
-      } else if (error.status >= 500) {
+      } else if (error.status >= 500 && !req.url.includes('/draft-')) {
+        // The two AI draft endpoints answer 503 with a specific message, which
+        // the draft panels render inline next to their generate button. A
+        // snackbar on top of that would say "something went wrong" over an
+        // explanation the user can already read.
         snackBar.open('Something went wrong. Please try again.', 'Dismiss', { duration: 5000 });
       }
       // 400s are intentionally passed through uncaught so the calling

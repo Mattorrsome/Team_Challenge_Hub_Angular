@@ -110,4 +110,33 @@ describe('errorHandlingInterceptor', () => {
 
     expect(authService.currentUser()).not.toBeNull();
   });
+
+  it('does not open a snackbar on a 503 for a draft URL — the panel shows it inline', () => {
+    http
+      .post('/api/challenges/1/draft-problem-statement', {})
+      .subscribe({ error: () => {} });
+
+    httpMock
+      .expectOne('/api/challenges/1/draft-problem-statement')
+      .flush(
+        { error: 'AI drafting is unavailable right now. Please try again.' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
+
+    expect(snackBar.open).not.toHaveBeenCalled();
+  });
+
+  it('still opens the generic snackbar on a 500 for a non-draft URL', () => {
+    http.get('/api/challenges').subscribe({ error: () => {} });
+
+    httpMock
+      .expectOne('/api/challenges')
+      .flush(null, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Something went wrong. Please try again.',
+      'Dismiss',
+      { duration: 5000 },
+    );
+  });
 });
