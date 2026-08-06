@@ -111,8 +111,11 @@ No new component, service, model, or route.
 
 `npm test -- --watch=false`
 
-- `error-handling.interceptor.spec.ts` — a 503 on a `/draft-` URL opens no
-  snackbar; an existing test already covers a 500 elsewhere still opening one.
+- `error-handling.interceptor.spec.ts` — two new tests: a 503 on a `/draft-`
+  URL opens no snackbar, and a 500 on a non-draft URL still opens the generic
+  one. The second is needed because the file currently has no coverage of the
+  ≥ 500 branch at all, so the exclusion could otherwise disable it entirely
+  without a test noticing.
 - `problem-statement-panel.component.spec.ts` — a 503 with
   `{ error: "..." }` sets `draftError` to that message, leaves `draftText`
   untouched, and clears `isDrafting`; a 503 with no body falls back to the
