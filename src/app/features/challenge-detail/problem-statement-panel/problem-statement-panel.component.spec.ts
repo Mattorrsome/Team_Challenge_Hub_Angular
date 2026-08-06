@@ -39,6 +39,9 @@ describe('ProblemStatementPanelComponent', () => {
   it('shows the server message when drafting fails', () => {
     const httpMock = TestBed.inject(HttpTestingController);
 
+    // A failed draft must not overwrite what the user has in the field.
+    component.updateDraftText('my in-progress notes');
+
     component.requestDraft();
     httpMock
       .expectOne('/api/challenges/1/draft-problem-statement')
@@ -49,8 +52,7 @@ describe('ProblemStatementPanelComponent', () => {
 
     expect(component.draftError()).toBe('AI drafting is unavailable right now. Please try again.');
     expect(component.isDrafting()).toBe(false);
-    // A failed draft must not overwrite what the user has in the field.
-    expect(component.draftText()).toBe('');
+    expect(component.draftText()).toBe('my in-progress notes');
   });
 
   it('falls back to a generic message when the failure has no body', () => {
