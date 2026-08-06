@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { By } from '@angular/platform-browser';
 import { ProblemStatementPanelComponent } from './problem-statement-panel.component';
 import { Challenge } from '../../../core/models/challenge.model';
 
@@ -63,9 +64,7 @@ describe('ProblemStatementPanelComponent', () => {
       .expectOne('/api/challenges/1/draft-problem-statement')
       .flush(null, { status: 503, statusText: 'Service Unavailable' });
 
-    expect(component.draftError()).toBe(
-      'AI drafting is unavailable. Write the statement manually or try again.',
-    );
+    expect(component.draftError()).toBe('AI drafting is unavailable. Please try again.');
   });
 
   it('clears the error when a later draft succeeds', () => {
@@ -78,11 +77,31 @@ describe('ProblemStatementPanelComponent', () => {
     expect(component.draftError()).not.toBeNull();
 
     component.requestDraft();
+    expect(component.draftError()).toBeNull();
     httpMock
       .expectOne('/api/challenges/1/draft-problem-statement')
       .flush({ problemStatement: 'Problem: slow deploys.' });
 
     expect(component.draftError()).toBeNull();
     expect(component.draftText()).toBe('Problem: slow deploys.');
+  });
+
+  it('renders the error message with role="alert" for screen readers', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    component.requestDraft();
+    httpMock
+      .expectOne('/api/challenges/1/draft-problem-statement')
+      .flush(
+        { error: 'AI drafting is unavailable right now. Please try again.' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
+    fixture.detectChanges();
+
+    const alert = fixture.debugElement.query(By.css('[role="alert"]'));
+    expect(alert).toBeTruthy();
+    expect(alert.nativeElement.textContent).toContain(
+      'AI drafting is unavailable right now. Please try again.',
+    );
   });
 });

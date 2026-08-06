@@ -49,11 +49,10 @@ export class SolutionOptionsPanelComponent {
       error: (error: HttpErrorResponse) => {
         this.isDrafting.set(false);
         // The API sends { error: "..." } on a 503. The fallback covers a
-        // network or proxy failure, where there is no body to read.
-        this.draftError.set(
-          error.error?.error ??
-            'AI drafting is unavailable. Write the options manually or try again.',
-        );
+        // network or proxy failure, where there is no body to read, and a
+        // non-string body (error.error is `any`, so it isn't guaranteed).
+        const message = typeof error.error?.error === 'string' ? error.error.error : null;
+        this.draftError.set(message ?? 'AI drafting is unavailable. Please try again.');
       },
     });
   }

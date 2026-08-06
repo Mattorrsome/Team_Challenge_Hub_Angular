@@ -103,9 +103,7 @@ describe('SolutionOptionsPanelComponent', () => {
       .expectOne('/api/challenges/1/draft-solution-options')
       .flush(null, { status: 503, statusText: 'Service Unavailable' });
 
-    expect(component.draftError()).toBe(
-      'AI drafting is unavailable. Write the options manually or try again.',
-    );
+    expect(component.draftError()).toBe('AI drafting is unavailable. Please try again.');
   });
 
   it('clears the error when a later draft succeeds', () => {
@@ -118,11 +116,31 @@ describe('SolutionOptionsPanelComponent', () => {
     expect(component.draftError()).not.toBeNull();
 
     component.requestDrafts();
+    expect(component.draftError()).toBeNull();
     httpMock
       .expectOne('/api/challenges/1/draft-solution-options')
       .flush({ options: ['Automate the gates.', 'Split the pipeline.'] });
 
     expect(component.draftError()).toBeNull();
     expect(component.draftOptions().length).toBe(2);
+  });
+
+  it('renders the error message with role="alert" for screen readers', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    component.requestDrafts();
+    httpMock
+      .expectOne('/api/challenges/1/draft-solution-options')
+      .flush(
+        { error: 'AI drafting is unavailable right now. Please try again.' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
+    fixture.detectChanges();
+
+    const alert = fixture.debugElement.query(By.css('[role="alert"]'));
+    expect(alert).toBeTruthy();
+    expect(alert.nativeElement.textContent).toContain(
+      'AI drafting is unavailable right now. Please try again.',
+    );
   });
 });

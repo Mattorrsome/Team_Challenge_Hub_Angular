@@ -24,9 +24,10 @@
       border-bottom: 1px solid var(--mat-sys-outline-variant);
     }
   }
-}
 
-.solution-options-panel__error {
-  color: #b3261e;
-  margin: 8px 0 0;
+  &__error {
+    color: var(--mat-sys-error);
+    font-size: 0.875rem;
+    margin: 8px 0 0;
+  }
 }
