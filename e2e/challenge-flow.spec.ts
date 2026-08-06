@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test('create challenge, draft problem statement, edit, accept, appears in list', async ({ page }) => {
+  // Unique per run: the dev database persists between runs, and alex.kim is
+  // an admin, whose list now shows every user's challenges (not just their
+  // own) — a repeated title would collide with earlier runs' rows.
+  const title = `Reduce flaky CI builds ${Date.now()}`;
+
   await page.goto('/sign-in');
   await page.getByLabel('Username').fill('alex.kim');
   await page.getByLabel('Password').fill('ChangeMe123!');
@@ -9,7 +14,7 @@ test('create challenge, draft problem statement, edit, accept, appears in list',
 
   // Create a challenge.
   await page.getByRole('link', { name: 'New Challenge' }).click();
-  await page.getByLabel('Title').fill('Reduce flaky CI builds');
+  await page.getByLabel('Title').fill(title);
   await page.getByLabel('Raw notes').fill('CI fails intermittently on the integration suite.');
   await page.getByRole('button', { name: 'Create Challenge' }).click();
 
@@ -26,6 +31,6 @@ test('create challenge, draft problem statement, edit, accept, appears in list',
 
   // Verify it appears in the list with the updated status.
   await page.goto('/challenges');
-  const card = page.getByText('Reduce flaky CI builds').locator('..');
+  const card = page.getByText(title).locator('..');
   await expect(card.getByText('Problem Statement Drafted')).toBeVisible();
 });

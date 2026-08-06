@@ -69,6 +69,6 @@ describe('SolutionOptionsPanelComponent', () => {
     fixture.componentInstance.canEdit = true;
     fixture.detectChanges();
 
-    expect(fixture.debugElement.queryAll(By.css('button')).length).toBeGreaterThan(0);
+    expect(fixture.debugElement.queryAll(By.css('button')).length).toBe(2);
   });
 });
