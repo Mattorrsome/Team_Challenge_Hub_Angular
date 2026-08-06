@@ -7,6 +7,10 @@
     </button>
   }
 
+  @if (draftError()) {
+    <p class="solution-options-panel__error" role="alert">{{ draftError() }}</p>
+  }
+
   @if (canEdit) {
     @for (draft of draftOptions(); track $index) {
       <div class="solution-options-panel__draft">

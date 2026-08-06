@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { SolutionOptionsPanelComponent } from './solution-options-panel.component';
 import { Challenge } from '../../../core/models/challenge.model';
@@ -70,5 +70,59 @@ describe('SolutionOptionsPanelComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.queryAll(By.css('button')).length).toBe(2);
+  });
+
+  it('shows the server message when drafting options fails, preserving existing drafts', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    // Seed real state through the public API: a successful draft first.
+    component.requestDrafts();
+    httpMock
+      .expectOne('/api/challenges/1/draft-solution-options')
+      .flush({ options: ['Automate the gates.', 'Split the pipeline.'] });
+    expect(component.draftOptions()).toEqual(['Automate the gates.', 'Split the pipeline.']);
+
+    component.requestDrafts();
+    httpMock
+      .expectOne('/api/challenges/1/draft-solution-options')
+      .flush(
+        { error: 'AI drafting is unavailable right now. Please try again.' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
+
+    expect(component.draftError()).toBe('AI drafting is unavailable right now. Please try again.');
+    expect(component.isDrafting()).toBe(false);
+    expect(component.draftOptions()).toEqual(['Automate the gates.', 'Split the pipeline.']);
+  });
+
+  it('falls back to a generic message when the failure has no body', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    component.requestDrafts();
+    httpMock
+      .expectOne('/api/challenges/1/draft-solution-options')
+      .flush(null, { status: 503, statusText: 'Service Unavailable' });
+
+    expect(component.draftError()).toBe(
+      'AI drafting is unavailable. Write the options manually or try again.',
+    );
+  });
+
+  it('clears the error when a later draft succeeds', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    component.requestDrafts();
+    httpMock
+      .expectOne('/api/challenges/1/draft-solution-options')
+      .flush(null, { status: 503, statusText: 'Service Unavailable' });
+    expect(component.draftError()).not.toBeNull();
+
+    component.requestDrafts();
+    httpMock
+      .expectOne('/api/challenges/1/draft-solution-options')
+      .flush({ options: ['Automate the gates.', 'Split the pipeline.'] });
+
+    expect(component.draftError()).toBeNull();
+    expect(component.draftOptions().length).toBe(2);
   });
 });
