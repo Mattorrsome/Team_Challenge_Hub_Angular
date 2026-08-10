@@ -103,6 +103,28 @@ describe('AppComponent', () => {
     expect(fixture.debugElement.query(By.css('.app-admin-link'))).toBe(null);
   });
 
+  it('renders icon-only Users and sign-out buttons with accessible labels', () => {
+    TestBed.inject(AuthService).signIn('jordan.patel', 'ChangeMe123!').subscribe();
+    TestBed.inject(HttpTestingController)
+      .expectOne(`${environment.apiBaseUrl}/auth/signin`)
+      .flush({ id: 3, username: 'jordan.patel', role: 'Admin' });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    const signOut: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.app-sign-out'),
+    ).nativeElement;
+    expect(signOut.getAttribute('aria-label')).toBe('Sign out');
+    expect(signOut.textContent?.trim()).toBe('logout');
+
+    const adminLink: HTMLAnchorElement = fixture.debugElement.query(
+      By.css('.app-admin-link'),
+    ).nativeElement;
+    expect(adminLink.getAttribute('aria-label')).toBe('Users');
+    expect(adminLink.textContent?.trim()).toBe('group');
+  });
+
   it('does not navigate when sign-out fails', () => {
     const httpMock = TestBed.inject(HttpTestingController);
     TestBed.inject(AuthService).signIn('jordan.patel', 'ChangeMe123!').subscribe();

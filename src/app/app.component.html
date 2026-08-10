@@ -1,6 +1,11 @@
 <mat-toolbar color="primary">
   <a class="app-title" routerLink="/">Team Challenge Hub</a>
   <span class="spacer"></span>
+
+  @if (auth.currentUser(); as user) {
+    <span class="app-username">{{ user.username }}</span>
+  }
+
   <button
     class="app-theme-toggle"
     mat-icon-button
@@ -15,10 +20,26 @@
 
   @if (auth.currentUser(); as user) {
     @if (auth.isAdmin()) {
-      <a class="app-admin-link" mat-button routerLink="/admin/users">Users</a>
+      <a
+        class="app-admin-link"
+        mat-icon-button
+        routerLink="/admin/users"
+        aria-label="Users"
+        matTooltip="Users"
+      >
+        <mat-icon>group</mat-icon>
+      </a>
     }
-    <span class="app-username">{{ user.username }}</span>
-    <button class="app-sign-out" mat-button type="button" (click)="onSignOut()">Sign out</button>
+    <button
+      class="app-sign-out"
+      mat-icon-button
+      type="button"
+      aria-label="Sign out"
+      matTooltip="Sign out"
+      (click)="onSignOut()"
+    >
+      <mat-icon>logout</mat-icon>
+    </button>
   }
 </mat-toolbar>
 
