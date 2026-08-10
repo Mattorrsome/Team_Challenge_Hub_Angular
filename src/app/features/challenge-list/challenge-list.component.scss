@@ -10,12 +10,22 @@
     align-items: center;
     margin-bottom: 1rem;
     gap: 1rem;
+    background: var(--mat-sys-surface-container-low);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
   }
 
   &__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1rem;
+    background: var(--mat-sys-surface-container);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  &__card-title {
+    font-size: 1.1rem;
   }
 
   &__card-link {
