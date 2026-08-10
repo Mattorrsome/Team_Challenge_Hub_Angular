@@ -13,12 +13,15 @@
     [attr.aria-label]="
       themeService.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
     "
+    [matTooltip]="
+      themeService.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+    "
     (click)="themeService.toggle()"
   >
     <mat-icon>{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
   </button>
 
-  @if (auth.currentUser(); as user) {
+  @if (auth.currentUser()) {
     @if (auth.isAdmin()) {
       <a
         class="app-admin-link"
