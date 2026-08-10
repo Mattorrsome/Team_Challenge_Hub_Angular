@@ -44,3 +44,7 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Graphify generated data (keep report, ignore regeneratable artifacts)
+/graphify-out/*
+!/graphify-out/GRAPH_REPORT.md
