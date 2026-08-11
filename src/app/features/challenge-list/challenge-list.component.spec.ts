@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
 
 import { ChallengeListComponent } from './challenge-list.component';
 import { AuthService } from '../../core/auth/auth.service';
@@ -23,6 +24,10 @@ describe('ChallengeListComponent', () => {
     httpMock
       .expectOne(`${environment.apiBaseUrl}/auth/signin`)
       .flush({ id: 1, username: 'alex.kim', role: 'Collaborator' });
+  });
+
+  afterEach(() => {
+    document.querySelectorAll('.cdk-overlay-container').forEach((el) => el.remove());
   });
 
   const listUrl = `${environment.apiBaseUrl}/challenges`;
@@ -109,6 +114,34 @@ describe('ChallengeListComponent', () => {
     expect(req.request.params.has('userId')).toBe(false);
 
     req.flush([]);
+    httpMock.verify();
+  });
+
+  it('renders spaced status labels in the filter', async () => {
+    const fixture = TestBed.createComponent(ChallengeListComponent);
+    TestBed.tick();
+    httpMock.expectOne((r) => r.url === listUrl).flush([]);
+    await Promise.resolve();
+    TestBed.tick();
+    fixture.detectChanges();
+
+    // mat-select renders its options into an overlay, and only once opened.
+    const trigger: HTMLElement = fixture.debugElement.query(
+      By.css('.mat-mdc-select-trigger'),
+    ).nativeElement;
+    trigger.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const optionText = Array.from(
+      document.querySelectorAll('.mat-mdc-option'),
+    ).map((option) => option.textContent?.trim());
+
+    expect(optionText).toContain('Problem Statement Drafted');
+    expect(optionText).not.toContain('ProblemStatementDrafted');
+    // The raw enum value is what still travels to the API.
+    expect(fixture.componentInstance.statuses).toContain('ProblemStatementDrafted');
+
     httpMock.verify();
   });
 });

@@ -1,16 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { ChallengeStatus } from '../../core/models/challenge.model';
-
-const LABELS: Record<ChallengeStatus, string> = {
-  Submitted: 'Submitted',
-  ProblemStatementDrafted: 'Problem Statement Drafted',
-  OptionsDrafted: 'Options Drafted',
-  OptionSelected: 'Option Selected',
-  InReview: 'In Review',
-  Approved: 'Approved',
-  Rejected: 'Rejected',
-};
+import { ChallengeStatus, STATUS_LABELS } from '../../core/models/challenge.model';
 
 const CSS_CLASSES: Record<ChallengeStatus, string> = {
   Submitted: 'status-badge--neutral',
@@ -38,6 +28,6 @@ export class StatusBadgeComponent {
     this.statusSignal.set(value);
   }
 
-  readonly label = computed(() => LABELS[this.statusSignal()]);
+  readonly label = computed(() => STATUS_LABELS[this.statusSignal()]);
   readonly cssClass = computed(() => CSS_CLASSES[this.statusSignal()]);
 }

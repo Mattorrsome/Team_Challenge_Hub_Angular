@@ -7,7 +7,7 @@
     >
       <mat-option [value]="null">All statuses</mat-option>
       @for (status of statuses; track status) {
-        <mat-option [value]="status">{{ status }}</mat-option>
+        <mat-option [value]="status">{{ statusLabels[status] }}</mat-option>
       }
     </mat-select>
     <a mat-raised-button color="primary" routerLink="/challenges/new">New Challenge</a>

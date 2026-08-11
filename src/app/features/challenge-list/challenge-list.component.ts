@@ -6,7 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChallengeApiService } from '../../core/services/challenge-api.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { Challenge, ChallengeStatus } from '../../core/models/challenge.model';
+import { Challenge, ChallengeStatus, STATUS_LABELS } from '../../core/models/challenge.model';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 
 const ALL_STATUSES: ChallengeStatus[] = [
@@ -39,6 +39,7 @@ export class ChallengeListComponent {
   private readonly auth = inject(AuthService);
 
   readonly statuses = ALL_STATUSES;
+  readonly statusLabels = STATUS_LABELS;
   readonly statusFilter = signal<ChallengeStatus | null>(null);
 
   // Re-fetches whenever the signed-in user or the status filter changes. The
