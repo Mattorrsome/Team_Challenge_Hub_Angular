@@ -195,6 +195,9 @@ describe('SolutionOptionsPanelComponent', () => {
     expect(icon).not.toBeNull();
     expect(icon.nativeElement.textContent.trim()).toBe('check_circle');
     expect(icon.nativeElement.getAttribute('aria-label')).toBe('Selected option');
+    // MatIcon defaults to aria-hidden="true"; without an explicit override the
+    // label above is never reachable by assistive tech.
+    expect(icon.nativeElement.getAttribute('aria-hidden')).not.toBe('true');
     // The word itself is gone.
     expect(selectedRow.nativeElement.textContent).not.toContain('Selected');
   });
