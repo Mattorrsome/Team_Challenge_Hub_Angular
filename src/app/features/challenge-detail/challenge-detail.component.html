@@ -19,6 +19,17 @@
       </section>
     }
 
+    @if (c.status === 'InReview') {
+      @for (option of c.options; track option.id) {
+        @if (option.isSelected) {
+          <section class="challenge-detail__selected-option">
+            <h3>Selected Option</h3>
+            <p>{{ option.text }}</p>
+          </section>
+        }
+      }
+    }
+
     @switch (currentPanel()) {
       @case ('problem-statement') {
         @if (canEdit()) {

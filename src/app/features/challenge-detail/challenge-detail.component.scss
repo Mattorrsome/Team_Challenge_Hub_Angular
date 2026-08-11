@@ -31,6 +31,17 @@
     }
   }
 
+  &__selected-option {
+    p {
+      white-space: pre-wrap;
+      margin: 0;
+    }
+
+    h3 {
+      margin: 0 0 0.5rem;
+    }
+  }
+
   @media (max-width: 600px) {
     padding: 0.5rem;
   }

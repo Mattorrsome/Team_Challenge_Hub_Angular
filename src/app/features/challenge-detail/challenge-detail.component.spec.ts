@@ -151,6 +151,39 @@ describe('ChallengeDetailComponent', () => {
     expect(stepperIndex).toBeLessThan(statementIndex);
   });
 
+  it('shows the selected option below the problem statement while in review', () => {
+    expectLoadRequest().flush({
+      ...fakeChallenge,
+      status: 'InReview',
+      problemStatement: 'Problem: Deploys take too long.',
+      options: [
+        { id: 1, text: 'Automate the gates.', isSelected: false, createdAt: '2026-07-29T00:00:00Z' },
+        { id: 2, text: 'Split the pipeline.', isSelected: true, createdAt: '2026-07-29T00:00:00Z' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const section = fixture.debugElement.query(By.css('.challenge-detail__selected-option'));
+    expect(section).not.toBeNull();
+    expect(section.nativeElement.textContent).toContain('Split the pipeline.');
+    // Only the selected option — not the whole list.
+    expect(section.nativeElement.textContent).not.toContain('Automate the gates.');
+  });
+
+  it('does not show the selected option section outside review', () => {
+    expectLoadRequest().flush({
+      ...fakeChallenge,
+      status: 'OptionSelected',
+      problemStatement: 'Problem: Deploys take too long.',
+      options: [
+        { id: 2, text: 'Split the pipeline.', isSelected: true, createdAt: '2026-07-29T00:00:00Z' },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.challenge-detail__selected-option'))).toBeNull();
+  });
+
   it('lets the owner edit', () => {
     signInAs(1, 'alex.kim', 'Collaborator');
     expectLoadRequest().flush(fakeChallenge);
