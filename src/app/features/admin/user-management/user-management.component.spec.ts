@@ -25,6 +25,16 @@ describe('UserManagementComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
+  // Default the destructive confirm to "yes" so the existing delete tests keep
+  // exercising the request path. The one test that declines overrides it.
+  beforeEach(() => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const create = () => {
     const fixture = TestBed.createComponent(UserManagementComponent);
     httpMock.expectOne(usersUrl).flush(seeded);
@@ -141,6 +151,27 @@ describe('UserManagementComponent', () => {
 
     expect(open).toHaveBeenCalled();
     expect(fixture.componentInstance.users().length).toBe(2);
+    httpMock.verify();
+  });
+
+  it('does not delete when the confirmation is declined', () => {
+    const fixture = create();
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    // No DELETE was issued, and the list is untouched.
+    httpMock.verify();
+    expect(fixture.componentInstance.users().length).toBe(2);
+  });
+
+  it('names the user in the confirmation prompt', () => {
+    const fixture = create();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    fixture.componentInstance.onDelete(seeded[1]);
+
+    expect(confirmSpy.mock.calls[0][0]).toContain('jordan.patel');
     httpMock.verify();
   });
 });

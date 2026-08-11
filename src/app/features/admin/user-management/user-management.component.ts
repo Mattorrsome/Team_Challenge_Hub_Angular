@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserApiService } from '../../../core/services/user-api.service';
 import { User } from '../../../core/models/user.model';
 import { UserRole } from '../../../core/auth/models/auth-user.model';
@@ -13,7 +15,13 @@ const ROLES: UserRole[] = ['Collaborator', 'Admin'];
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [MatButtonModule, MatFormFieldModule, MatSelectModule],
+  imports: [
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatSelectModule,
+    MatTooltipModule,
+  ],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +47,11 @@ export class UserManagementComponent {
   }
 
   onDelete(user: User): void {
+    // The control is an unlabelled icon next to a role dropdown, and the API
+    // deletes immediately — this is the only thing between a mis-click and a
+    // removed user.
+    if (!confirm(`Delete ${user.username}?`)) return;
+
     this.userApi.deleteUser(user.id).subscribe({
       next: () => this.reload(),
       error: (err: HttpErrorResponse) => {
