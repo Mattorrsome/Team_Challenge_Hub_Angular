@@ -734,8 +734,10 @@ Replace exactly that portion with:
 
     // Asserted by label, not by count: at OptionSelected the button count moves
     // for two independent reasons, so a count can't say which behaviour broke.
-    // The label is also what the tooltip and a screen reader both read.
-    expect(buttonLabels).toContain('Select this option');
+    // The label is also what the tooltip and a screen reader both read. It is
+    // prefix-checked, not exact-matched, because it includes the option text
+    // so that a screen reader can tell the rows apart.
+    expect(buttonLabels.some((label) => label?.startsWith('Select option:'))).toBe(true);
     expect(buttonText).not.toContain('Draft Solution Options');
 ```
 
@@ -777,7 +779,7 @@ Then add this test just before the closing `});` of the `describe` block:
 
 Run: `npx ng test --watch=false`
 Expected: FAIL, twice:
-- `hides the drafting controls but still offers Select once an option is selected` fails on `expect(buttonLabels).toContain('Select this option')` — the button has no `aria-label` yet, so the array holds `null`.
+- `hides the drafting controls but still offers Select once an option is selected` fails on the `buttonLabels.some(...)` assertion — the button has no `aria-label` yet, so the array holds `null` and nothing matches the prefix.
 - `marks the selected option with a labelled icon, not text` fails on `expect(icon).not.toBeNull()` — the row still renders a `<strong>Selected</strong>`.
 
 - [ ] **Step 3: Swap both controls for icons**
