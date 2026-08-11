@@ -13,3 +13,19 @@
   font-size: 1.1rem;
   color: var(--mat-sys-tertiary);
 }
+
+@media (max-width: 600px) {
+  mat-toolbar {
+    flex-wrap: wrap;
+    // Material pins mat-toolbar to a single-row height; without this the
+    // wrapped second row is clipped.
+    height: auto;
+    padding-block: 0.5rem;
+  }
+
+  .app-title {
+    // A full-width first row pushes everything after it onto a second row,
+    // where the existing .spacer still right-aligns it.
+    flex: 0 0 100%;
+  }
+}
