@@ -125,6 +125,32 @@ describe('ChallengeDetailComponent', () => {
     ).toBeNull();
   });
 
+  it('renders the status stepper below the header but above the notes and problem statement', () => {
+    expectLoadRequest().flush({
+      ...fakeChallenge,
+      status: 'OptionsDrafted',
+      problemStatement: 'Problem: Deploys take too long.',
+    });
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.debugElement.query(By.css('.challenge-detail')).nativeElement;
+    // Angular's control-flow anchors are comment nodes, so `children` sees only
+    // the rendered elements and their order is the template order.
+    const children = Array.from(root.children);
+    const indexOfTag = (tag: string) =>
+      children.findIndex((el) => el.tagName.toLowerCase() === tag);
+    const indexOfClass = (cls: string) => children.findIndex((el) => el.classList.contains(cls));
+
+    const headerIndex = indexOfClass('challenge-detail__header');
+    const stepperIndex = indexOfTag('app-status-stepper');
+    const notesIndex = indexOfClass('challenge-detail__raw-notes');
+    const statementIndex = indexOfClass('challenge-detail__problem-statement');
+
+    expect(stepperIndex).toBeGreaterThan(headerIndex);
+    expect(stepperIndex).toBeLessThan(notesIndex);
+    expect(stepperIndex).toBeLessThan(statementIndex);
+  });
+
   it('lets the owner edit', () => {
     signInAs(1, 'alex.kim', 'Collaborator');
     expectLoadRequest().flush(fakeChallenge);

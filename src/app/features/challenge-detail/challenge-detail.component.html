@@ -8,6 +8,8 @@
       }
     </div>
 
+    <app-status-stepper [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
+
     <p class="challenge-detail__raw-notes">{{ c.rawNotes }}</p>
 
     @if (c.problemStatement) {
@@ -16,8 +18,6 @@
         <p>{{ c.problemStatement }}</p>
       </section>
     }
-
-    <app-status-stepper [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
 
     @switch (currentPanel()) {
       @case ('problem-statement') {
