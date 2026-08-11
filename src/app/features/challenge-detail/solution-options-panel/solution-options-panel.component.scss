@@ -5,6 +5,11 @@
     width: 100%;
   }
 
+  // Without this the button's ripple overlay runs into the first draft box.
+  &__draft-button {
+    margin-bottom: 1rem;
+  }
+
   &__draft {
     display: flex;
     flex-direction: column;
@@ -20,9 +25,28 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.5rem 0;
+      // Horizontal padding on every row, not only the selected one, so rows
+      // keep their width when the selection moves.
+      padding: 0.5rem;
       border-bottom: 1px solid var(--mat-sys-outline-variant);
     }
+
+    // The li is flex + space-between, so `strong` is already pinned right; this
+    // is a minimum gap that only shows once the option text fills the row.
+    strong {
+      padding-left: 0.5rem;
+    }
+  }
+
+  // No --mat-sys-* token means "selected", so this is the documented
+  // light-dark() fallback. Foreground is set with the background: contrast is
+  // 7.9:1 in light and 8.8:1 in dark, both clear of the 4.5:1 body-text floor.
+  &__selected-row {
+    background: light-dark(#dff3e4, #12301e);
+    color: light-dark(#0b5228, #9fd8b4);
+    border-radius: 4px;
+    // The row is a filled block, so the divider would cut across its corners.
+    border-bottom-color: transparent;
   }
 
   &__error {
