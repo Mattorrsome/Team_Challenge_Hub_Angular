@@ -728,12 +728,9 @@ In `src/app/features/challenge-detail/solution-options-panel/solution-options-pa
 Replace exactly that portion with:
 
 ```ts
-    const buttonLabels = fixture.debugElement
-      .queryAll(By.css('button'))
-      .map((button) => button.nativeElement.getAttribute('aria-label'));
-    const buttonText = fixture.debugElement
-      .queryAll(By.css('button'))
-      .map((button) => button.nativeElement.textContent.trim());
+    const buttons = fixture.debugElement.queryAll(By.css('button'));
+    const buttonLabels = buttons.map((b) => b.nativeElement.getAttribute('aria-label'));
+    const buttonText = buttons.map((b) => b.nativeElement.textContent.trim());
 
     // Asserted by label, not by count: at OptionSelected the button count moves
     // for two independent reasons, so a count can't say which behaviour broke.
