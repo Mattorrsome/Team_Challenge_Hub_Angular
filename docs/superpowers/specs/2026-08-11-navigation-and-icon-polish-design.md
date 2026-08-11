@@ -142,7 +142,11 @@ private readonly url = toSignal(
 
 readonly showBack = computed(() => {
   const path = this.url().split('?')[0];
-  return path !== '/challenges' && !path.startsWith('/sign-');
+  // '' and '/' are the pre-redirect root: router.url reads '/' on first paint,
+  // before the '' -> 'challenges' redirect has fired a NavigationEnd. Treating
+  // them as the list keeps the bar from flashing on load.
+  if (path === '' || path === '/' || path === '/challenges') return false;
+  return !path.startsWith('/sign-');
 });
 ```
 
@@ -151,10 +155,6 @@ readonly showBack = computed(() => {
 defeating the equality check. Given the route table, the bar shows on
 `/challenges/new`, `/challenges/:id`, `/challenges/:id/edit`, and
 `/admin/users`; it is hidden on `/challenges`, `/sign-in`, and `/sign-up`.
-
-The empty path `''` redirects to `challenges` with `pathMatch: 'full'`, and
-`urlAfterRedirects` reports the post-redirect URL, so a visit to `/` correctly
-hides the bar.
 
 `app.component.ts` already injects `Router` and imports `RouterLink`,
 `MatButtonModule`, and `MatIconModule`; this adds only the `toSignal`,
@@ -233,10 +233,12 @@ The two states differ by glyph shape, not merely by fill: a filled
 `radio_button_unchecked` for the action. No colour rule is needed —
 `li…__selected-row` already sets `color: light-dark(#0b5228, #9fd8b4)` and
 `mat-icon` inherits it, so the check picks up the row's green for free while
-the action icon keeps the default foreground. `__selected-icon` therefore
-exists only as a layout hook (alignment/margin within the row), and can be
-dropped if the default flow already sits right. The selected icon is static, so
-it is marked `role="img"` with a label rather than left as decorative.
+the action icon keeps the default foreground. `__selected-icon` inherits the
+one rule the removed `<strong>` owned — a `padding-left` that keeps a minimum
+gap once the option text fills the row. The row is already `display: flex;
+align-items: center`, so no vertical alignment rule is needed. The selected
+icon is static, so it is marked `role="img"` with a label rather than left as
+decorative.
 
 Add `MatIconModule` and `MatTooltipModule` to the component's `imports`.
 
