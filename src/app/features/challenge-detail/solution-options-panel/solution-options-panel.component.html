@@ -7,11 +7,23 @@
         <li [class.solution-options-panel__selected-row]="option.isSelected">
           <span>{{ option.text }}</span>
           @if (option.isSelected) {
-            <strong>Selected</strong>
+            <mat-icon
+              class="solution-options-panel__selected-icon"
+              role="img"
+              aria-label="Selected option"
+              matTooltip="Selected option"
+            >check_circle</mat-icon>
           } @else if (
             canEdit && (challenge.status === 'OptionsDrafted' || challenge.status === 'OptionSelected')
           ) {
-            <button mat-button (click)="selectOption(option.id)">Select</button>
+            <button
+              mat-icon-button
+              aria-label="Select this option"
+              matTooltip="Select this option"
+              (click)="selectOption(option.id)"
+            >
+              <mat-icon>radio_button_unchecked</mat-icon>
+            </button>
           }
         </li>
       }

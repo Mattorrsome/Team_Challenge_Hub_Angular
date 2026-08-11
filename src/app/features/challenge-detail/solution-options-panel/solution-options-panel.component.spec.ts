@@ -86,13 +86,14 @@ describe('SolutionOptionsPanelComponent', () => {
     fixture.componentInstance.canEdit = true;
     fixture.detectChanges();
 
-    const buttonText = fixture.debugElement
-      .queryAll(By.css('button'))
-      .map((button) => button.nativeElement.textContent.trim());
+    const buttons = fixture.debugElement.queryAll(By.css('button'));
+    const buttonLabels = buttons.map((b) => b.nativeElement.getAttribute('aria-label'));
+    const buttonText = buttons.map((b) => b.nativeElement.textContent.trim());
 
-    // Asserted by text, not by count: at OptionSelected the button count moves
+    // Asserted by label, not by count: at OptionSelected the button count moves
     // for two independent reasons, so a count can't say which behaviour broke.
-    expect(buttonText).toContain('Select');
+    // The label is also what the tooltip and a screen reader both read.
+    expect(buttonLabels).toContain('Select this option');
     expect(buttonText).not.toContain('Draft Solution Options');
     // The selected row is marked for styling and shows no Select of its own.
     const selectedRow = fixture.debugElement.query(By.css('.solution-options-panel__selected-row'));
@@ -171,5 +172,30 @@ describe('SolutionOptionsPanelComponent', () => {
     expect(alert.nativeElement.textContent).toContain(
       'AI drafting is unavailable right now. Please try again.',
     );
+  });
+
+  it('marks the selected option with a labelled icon, not text', () => {
+    const fixture = TestBed.createComponent(SolutionOptionsPanelComponent);
+    fixture.componentInstance.challenge = {
+      ...fakeChallenge,
+      problemStatement: 'A statement.',
+      status: 'OptionSelected',
+      options: [
+        { id: 2, text: 'Split the pipeline.', isSelected: true, createdAt: '2026-07-29T00:00:00Z' },
+      ],
+    };
+    fixture.componentInstance.canEdit = true;
+    fixture.detectChanges();
+
+    const selectedRow = fixture.debugElement.query(
+      By.css('.solution-options-panel__selected-row'),
+    );
+    const icon = selectedRow.query(By.css('mat-icon'));
+
+    expect(icon).not.toBeNull();
+    expect(icon.nativeElement.textContent.trim()).toBe('check_circle');
+    expect(icon.nativeElement.getAttribute('aria-label')).toBe('Selected option');
+    // The word itself is gone.
+    expect(selectedRow.nativeElement.textContent).not.toContain('Selected');
   });
 });

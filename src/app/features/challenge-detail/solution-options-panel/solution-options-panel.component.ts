@@ -3,14 +3,23 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ChallengeApiService } from '../../../core/services/challenge-api.service';
 import { Challenge } from '../../../core/models/challenge.model';
 
 @Component({
   selector: 'app-solution-options-panel',
   standalone: true,
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatTooltipModule,
+  ],
   templateUrl: './solution-options-panel.component.html',
   styleUrl: './solution-options-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

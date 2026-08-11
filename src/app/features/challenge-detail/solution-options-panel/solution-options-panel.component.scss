@@ -31,9 +31,9 @@
       border-bottom: 1px solid var(--mat-sys-outline-variant);
     }
 
-    // The li is flex + space-between, so `strong` is already pinned right; this
+    // The li is flex + space-between, so the icon is already pinned right; this
     // is a minimum gap that only shows once the option text fills the row.
-    strong {
+    .solution-options-panel__selected-icon {
       padding-left: 0.5rem;
     }
   }
