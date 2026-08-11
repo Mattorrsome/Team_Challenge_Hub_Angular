@@ -212,6 +212,7 @@ unchanged:
     class="solution-options-panel__selected-icon"
     role="img"
     aria-label="Selected option"
+    aria-hidden="false"
     matTooltip="Selected option"
   >check_circle</mat-icon>
 } @else if (
@@ -219,7 +220,7 @@ unchanged:
 ) {
   <button
     mat-icon-button
-    aria-label="Select this option"
+    [attr.aria-label]="'Select option: ' + option.text"
     matTooltip="Select this option"
     (click)="selectOption(option.id)"
   >
@@ -238,7 +239,10 @@ one rule the removed `<strong>` owned — a `padding-left` that keeps a minimum
 gap once the option text fills the row. The row is already `display: flex;
 align-items: center`, so no vertical alignment rule is needed. The selected
 icon is static, so it is marked `role="img"` with a label rather than left as
-decorative.
+decorative. The `aria-hidden="false"` is required, not decorative boilerplate:
+`MatIcon`'s constructor force-sets `aria-hidden="true"` whenever the template
+omits the attribute, and only an explicit `"false"` (a truthy string) survives
+that guard, keeping `role="img"` and `aria-label` reachable by assistive tech.
 
 Add `MatIconModule` and `MatTooltipModule` to the component's `imports`.
 

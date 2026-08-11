@@ -133,14 +133,22 @@ describe('ChallengeListComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const optionText = Array.from(
-      document.querySelectorAll('.mat-mdc-option'),
-    ).map((option) => option.textContent?.trim());
+    const options = Array.from(document.querySelectorAll<HTMLElement>('.mat-mdc-option'));
+    const optionText = options.map((option) => option.textContent?.trim());
 
     expect(optionText).toContain('Problem Statement Drafted');
     expect(optionText).not.toContain('ProblemStatementDrafted');
-    // The raw enum value is what still travels to the API.
-    expect(fixture.componentInstance.statuses).toContain('ProblemStatementDrafted');
+
+    // Click the spaced-label option and confirm the raw enum, not the label,
+    // is what travels to the API.
+    const drafted = options.find((option) => option.textContent?.trim() === 'Problem Statement Drafted');
+    drafted!.click();
+    fixture.detectChanges();
+    TestBed.tick();
+
+    const req = httpMock.expectOne((r) => r.url === listUrl);
+    expect(req.request.params.get('status')).toBe('ProblemStatementDrafted');
+    req.flush([]);
 
     httpMock.verify();
   });

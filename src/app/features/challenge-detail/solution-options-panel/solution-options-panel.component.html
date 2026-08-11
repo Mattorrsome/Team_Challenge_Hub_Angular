@@ -19,7 +19,7 @@
           ) {
             <button
               mat-icon-button
-              aria-label="Select this option"
+              [attr.aria-label]="'Select option: ' + option.text"
               matTooltip="Select this option"
               (click)="selectOption(option.id)"
             >

@@ -765,6 +765,9 @@ Then add this test just before the closing `});` of the `describe` block:
     expect(icon).not.toBeNull();
     expect(icon.nativeElement.textContent.trim()).toBe('check_circle');
     expect(icon.nativeElement.getAttribute('aria-label')).toBe('Selected option');
+    // MatIcon defaults to aria-hidden="true"; without an explicit override the
+    // label above is never reachable by assistive tech.
+    expect(icon.nativeElement.getAttribute('aria-hidden')).not.toBe('true');
     // The word itself is gone.
     expect(selectedRow.nativeElement.textContent).not.toContain('Selected');
   });
@@ -799,6 +802,7 @@ with:
               class="solution-options-panel__selected-icon"
               role="img"
               aria-label="Selected option"
+              aria-hidden="false"
               matTooltip="Selected option"
             >check_circle</mat-icon>
           } @else if (
@@ -806,7 +810,7 @@ with:
           ) {
             <button
               mat-icon-button
-              aria-label="Select this option"
+              [attr.aria-label]="'Select option: ' + option.text"
               matTooltip="Select this option"
               (click)="selectOption(option.id)"
             >
@@ -815,7 +819,11 @@ with:
           }
 ```
 
-The `@else if` condition is unchanged — copy it exactly. The selected icon is static, not a button, so it carries `role="img"` with a label rather than being left decorative.
+The `@else if` condition is unchanged — copy it exactly. The selected icon is static, not a button, so it carries `role="img"` with a label rather than being left decorative. The
+`aria-hidden="false"` is required: `MatIcon`'s constructor force-sets
+`aria-hidden="true"` whenever the template omits the attribute, and only an
+explicit `"false"` (a truthy string) survives that guard, so omitting it would
+silently hide the label from assistive tech.
 
 No colour rule is needed: `li…__selected-row` in the component's SCSS already sets `color: light-dark(#0b5228, #9fd8b4)` and `mat-icon` inherits it, so the check picks up the row's green for free while the action icon keeps the default foreground.
 

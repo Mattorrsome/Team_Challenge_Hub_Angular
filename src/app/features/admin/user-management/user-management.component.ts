@@ -47,7 +47,7 @@ export class UserManagementComponent {
   }
 
   onDelete(user: User): void {
-    // The control is an unlabelled icon next to a role dropdown, and the API
+    // The control is an icon-only icon next to a role dropdown, and the API
     // deletes immediately — this is the only thing between a mis-click and a
     // removed user.
     if (!confirm(`Delete ${user.username}?`)) return;

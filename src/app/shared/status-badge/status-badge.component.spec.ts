@@ -20,4 +20,12 @@ describe('StatusBadgeComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('renders the spaced label for the given status', async () => {
+    fixture.componentRef.setInput('status', 'ProblemStatementDrafted');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Problem Statement Drafted');
+  });
 });

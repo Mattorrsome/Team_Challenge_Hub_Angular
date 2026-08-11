@@ -92,8 +92,10 @@ describe('SolutionOptionsPanelComponent', () => {
 
     // Asserted by label, not by count: at OptionSelected the button count moves
     // for two independent reasons, so a count can't say which behaviour broke.
-    // The label is also what the tooltip and a screen reader both read.
-    expect(buttonLabels).toContain('Select this option');
+    // The label is also what the tooltip and a screen reader both read. It is
+    // prefix-checked, not exact-matched, because it includes the option text
+    // so that a screen reader can tell the rows apart.
+    expect(buttonLabels.some((label) => label?.startsWith('Select option:'))).toBe(true);
     expect(buttonText).not.toContain('Draft Solution Options');
     // The selected row is marked for styling and shows no Select of its own.
     const selectedRow = fixture.debugElement.query(By.css('.solution-options-panel__selected-row'));
