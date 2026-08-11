@@ -31,10 +31,19 @@
       border-bottom: 1px solid var(--mat-sys-outline-variant);
     }
 
+    // Both controls are fixed-size boxes with overflow: hidden, and flex items
+    // shrink by default — a long option text squeezed them below their own
+    // width and clipped the glyph. Neither may shrink.
+    .solution-options-panel__selected-icon,
+    button {
+      flex-shrink: 0;
+    }
+
     // The li is flex + space-between, so the icon is already pinned right; this
     // is a minimum gap that only shows once the option text fills the row.
+    // Margin, not padding: padding would come out of the icon's own 24px box.
     .solution-options-panel__selected-icon {
-      padding-left: 0.5rem;
+      margin-left: 0.5rem;
     }
   }
 
