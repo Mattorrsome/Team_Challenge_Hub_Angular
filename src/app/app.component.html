@@ -46,4 +46,10 @@
   }
 </mat-toolbar>
 
+@if (showBack()) {
+  <a class="app-back" mat-button routerLink="/challenges">
+    <mat-icon>arrow_back</mat-icon>Back
+  </a>
+}
+
 <router-outlet />

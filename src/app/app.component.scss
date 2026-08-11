@@ -14,6 +14,11 @@
   color: var(--mat-sys-tertiary);
 }
 
+.app-back {
+  // Reads as a strip under the toolbar rather than as page content.
+  margin: 0.5rem 0 0 1rem;
+}
+
 @media (max-width: 600px) {
   mat-toolbar {
     flex-wrap: wrap;

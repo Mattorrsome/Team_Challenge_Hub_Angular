@@ -24,6 +24,8 @@ describe('AppComponent', () => {
         provideRouter([
           { path: '', component: DummyComponent },
           { path: 'other', component: DummyComponent },
+          { path: 'challenges', component: DummyComponent },
+          { path: 'admin/users', component: DummyComponent },
         ]),
       ],
     }).compileComponents();
@@ -148,5 +150,44 @@ describe('AppComponent', () => {
 
     expect(navigate).not.toHaveBeenCalled();
     httpMock.verify();
+  });
+
+  it('hides the back bar on the challenge list', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const router = TestBed.inject(Router);
+    fixture.detectChanges();
+
+    await router.navigateByUrl('/challenges');
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.app-back'))).toBe(null);
+  });
+
+  it('shows a back bar linking to the list on other pages', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const router = TestBed.inject(Router);
+    const location = TestBed.inject(Location);
+    fixture.detectChanges();
+
+    await router.navigateByUrl('/admin/users');
+    fixture.detectChanges();
+
+    const back = fixture.debugElement.query(By.css('.app-back'));
+    expect(back).not.toBe(null);
+
+    back.nativeElement.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(location.path()).toBe('/challenges');
+  });
+
+  it('hides the back bar before the root redirect resolves', () => {
+    // router.url is '/' on first paint, before any NavigationEnd. Without the
+    // root case in showBack the bar flashes on load.
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.app-back'))).toBe(null);
   });
 });
