@@ -10,7 +10,10 @@
     align-items: center;
     margin-bottom: 1rem;
     gap: 1rem;
-    background: var(--mat-sys-surface-container-low);
+    // Secondary-container tints header and grid the same, so they read as one
+    // panel behind the cards, which keep the neutral mat-card surface.
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
     border-radius: 8px;
     padding: 0.75rem 1rem;
   }
@@ -19,13 +22,18 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1rem;
-    background: var(--mat-sys-surface-container);
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
     border-radius: 8px;
     padding: 1rem;
   }
 
   &__card-title {
     font-size: 1.1rem;
+    // mat-card-title sits directly in mat-card (no mat-card-header), so it gets
+    // no horizontal padding, while mat-card-content below it carries Material's
+    // own 0 16px. Matching 16px aligns the title with the status badge.
+    padding-left: 16px;
   }
 
   &__card-link {
