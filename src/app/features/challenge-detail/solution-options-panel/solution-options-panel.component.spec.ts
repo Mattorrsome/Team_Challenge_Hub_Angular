@@ -72,6 +72,35 @@ describe('SolutionOptionsPanelComponent', () => {
     expect(fixture.debugElement.queryAll(By.css('button')).length).toBe(2);
   });
 
+  it('hides the drafting controls but still offers Select once an option is selected', () => {
+    const fixture = TestBed.createComponent(SolutionOptionsPanelComponent);
+    fixture.componentInstance.challenge = {
+      ...fakeChallenge,
+      problemStatement: 'A statement.',
+      status: 'OptionSelected',
+      options: [
+        { id: 1, text: 'Automate the gates.', isSelected: false, createdAt: '2026-07-29T00:00:00Z' },
+        { id: 2, text: 'Split the pipeline.', isSelected: true, createdAt: '2026-07-29T00:00:00Z' },
+      ],
+    };
+    fixture.componentInstance.canEdit = true;
+    fixture.detectChanges();
+
+    const buttonText = fixture.debugElement
+      .queryAll(By.css('button'))
+      .map((button) => button.nativeElement.textContent.trim());
+
+    // Asserted by text, not by count: at OptionSelected the button count moves
+    // for two independent reasons, so a count can't say which behaviour broke.
+    expect(buttonText).toContain('Select');
+    expect(buttonText).not.toContain('Draft Solution Options');
+    // The selected row is marked for styling and shows no Select of its own.
+    const selectedRow = fixture.debugElement.query(By.css('.solution-options-panel__selected-row'));
+    expect(selectedRow).not.toBeNull();
+    expect(selectedRow.nativeElement.textContent).toContain('Split the pipeline.');
+    expect(selectedRow.query(By.css('button'))).toBeNull();
+  });
+
   it('shows the server message when drafting options fails, preserving existing drafts', () => {
     const httpMock = TestBed.inject(HttpTestingController);
 

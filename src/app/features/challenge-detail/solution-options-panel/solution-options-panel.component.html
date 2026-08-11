@@ -1,45 +1,54 @@
 <div class="solution-options-panel">
   <h3>Solution Options</h3>
 
-  @if (canEdit && challenge.problemStatement) {
-    <button mat-raised-button (click)="requestDrafts()" [disabled]="isDrafting()">
-      {{ isDrafting() ? 'Drafting…' : 'Draft Solution Options' }}
-    </button>
-  }
-
-  @if (draftError()) {
-    <p class="solution-options-panel__error" role="alert">{{ draftError() }}</p>
-  }
-
-  @if (canEdit) {
-    @for (draft of draftOptions(); track $index) {
-      <div class="solution-options-panel__draft">
-        <mat-form-field appearance="outline" class="solution-options-panel__field">
-          <mat-label>Option (editable)</mat-label>
-          <textarea
-            matInput
-            rows="3"
-            [ngModel]="draft"
-            (ngModelChange)="updateDraft($index, $event)"
-          ></textarea>
-        </mat-form-field>
-        <button mat-raised-button color="primary" (click)="acceptDraft($index)">Accept & Save</button>
-      </div>
-    }
-  }
-
   @if (challenge.options.length > 0) {
     <ul class="solution-options-panel__accepted">
       @for (option of challenge.options; track option.id) {
-        <li>
+        <li [class.solution-options-panel__selected-row]="option.isSelected">
           <span>{{ option.text }}</span>
           @if (option.isSelected) {
             <strong>Selected</strong>
-          } @else if (canEdit && challenge.status === 'OptionsDrafted') {
+          } @else if (
+            canEdit && (challenge.status === 'OptionsDrafted' || challenge.status === 'OptionSelected')
+          ) {
             <button mat-button (click)="selectOption(option.id)">Select</button>
           }
         </li>
       }
     </ul>
+  }
+
+  @if (challenge.status !== 'OptionSelected') {
+    @if (draftError()) {
+      <p class="solution-options-panel__error" role="alert">{{ draftError() }}</p>
+    }
+
+    @if (canEdit && challenge.problemStatement) {
+      <button
+        mat-raised-button
+        class="solution-options-panel__draft-button"
+        (click)="requestDrafts()"
+        [disabled]="isDrafting()"
+      >
+        {{ isDrafting() ? 'Drafting…' : 'Draft Solution Options' }}
+      </button>
+    }
+
+    @if (canEdit) {
+      @for (draft of draftOptions(); track $index) {
+        <div class="solution-options-panel__draft">
+          <mat-form-field appearance="outline" class="solution-options-panel__field">
+            <mat-label>Option (editable)</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [ngModel]="draft"
+              (ngModelChange)="updateDraft($index, $event)"
+            ></textarea>
+          </mat-form-field>
+          <button mat-raised-button color="primary" (click)="acceptDraft($index)">Accept & Save</button>
+        </div>
+      }
+    }
   }
 </div>
