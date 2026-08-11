@@ -41,7 +41,7 @@
   // No --mat-sys-* token means "selected", so this is the documented
   // light-dark() fallback. Foreground is set with the background: contrast is
   // 7.9:1 in light and 8.8:1 in dark, both clear of the 4.5:1 body-text floor.
-  &__selected-row {
+  li#{&}__selected-row {
     background: light-dark(#dff3e4, #12301e);
     color: light-dark(#0b5228, #9fd8b4);
     border-radius: 4px;
