@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Signal, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Signal, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -52,6 +52,10 @@ export class ChallengeListComponent {
 
   readonly challenges: Signal<Challenge[]> = this.challengesResource.value;
   readonly loading: Signal<boolean> = this.challengesResource.isLoading;
+
+  // A collaborator's list is already scoped to their own challenges, so the
+  // "not mine" comparison alone is the whole rule — no admin gate needed.
+  readonly myId = computed(() => this.auth.currentUser()?.id ?? null);
 
   onFilterChange(status: ChallengeStatus | null): void {
     this.statusFilter.set(status);

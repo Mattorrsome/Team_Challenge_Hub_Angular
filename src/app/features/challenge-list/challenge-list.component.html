@@ -23,6 +23,9 @@
         <a class="challenge-list__card-link" [routerLink]="['/challenges', challenge.id]">
           <mat-card>
             <mat-card-title class="challenge-list__card-title">{{ challenge.title }}</mat-card-title>
+            @if (challenge.submittedByUserId !== myId()) {
+              <mat-card-subtitle>{{ challenge.submittedByName }}</mat-card-subtitle>
+            }
             <mat-card-content>
               <app-status-badge [status]="challenge.status" />
             </mat-card-content>

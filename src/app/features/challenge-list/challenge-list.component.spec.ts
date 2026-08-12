@@ -152,4 +152,52 @@ describe('ChallengeListComponent', () => {
 
     httpMock.verify();
   });
+
+  it('names the author only on challenges that are not your own', async () => {
+    // The beforeEach signed in as id 1; the admin session is what makes a list
+    // containing another user's challenge reachable.
+    TestBed.inject(AuthService).signIn('alex.kim', 'ChangeMe123!').subscribe();
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/auth/signin`)
+      .flush({ id: 1, username: 'alex.kim', role: 'Admin' });
+
+    const fixture = TestBed.createComponent(ChallengeListComponent);
+    TestBed.tick();
+    httpMock.expectOne((r) => r.url === listUrl).flush([
+      {
+        id: 1,
+        title: 'Mine',
+        rawNotes: 'Notes.',
+        problemStatement: null,
+        status: 'Submitted',
+        submittedByUserId: 1,
+        submittedByName: 'Alex Kim',
+        createdAt: '2026-07-29T00:00:00Z',
+        updatedAt: '2026-07-29T00:00:00Z',
+        options: [],
+      },
+      {
+        id: 2,
+        title: 'Theirs',
+        rawNotes: 'Notes.',
+        problemStatement: null,
+        status: 'Submitted',
+        submittedByUserId: 2,
+        submittedByName: 'Jordan Patel',
+        createdAt: '2026-07-29T00:00:00Z',
+        updatedAt: '2026-07-29T00:00:00Z',
+        options: [],
+      },
+    ]);
+    await Promise.resolve();
+    TestBed.tick();
+    fixture.detectChanges();
+
+    const subtitles = fixture.debugElement
+      .queryAll(By.css('mat-card-subtitle'))
+      .map((el) => el.nativeElement.textContent.trim());
+
+    expect(subtitles).toEqual(['Jordan Patel']);
+    httpMock.verify();
+  });
 });
