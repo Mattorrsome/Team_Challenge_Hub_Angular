@@ -20,6 +20,7 @@ describe('ChallengeDetailComponent', () => {
     problemStatement: null,
     status: 'Submitted',
     submittedByUserId: 1,
+    submittedByName: 'Alex Kim',
     createdAt: '2026-07-29T00:00:00Z',
     updatedAt: '2026-07-29T00:00:00Z',
     options: [],
@@ -296,5 +297,24 @@ describe('ChallengeDetailComponent', () => {
       .flush('Not Found', { status: 404, statusText: 'Not Found' });
 
     expect(navigate).toHaveBeenCalledWith(['/challenges']);
+  });
+
+  it('names the author on someone else\'s challenge', () => {
+    // fakeChallenge is submittedByUserId 1; sign in as a different user.
+    signInAs(2, 'jordan.patel', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    const byline = fixture.debugElement.query(By.css('.challenge-detail__author'));
+    expect(byline).not.toBeNull();
+    expect(byline.nativeElement.textContent).toContain('Alex Kim');
+  });
+
+  it('does not name the author on your own challenge', () => {
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.challenge-detail__author'))).toBeNull();
   });
 });

@@ -9,6 +9,10 @@
       }
     </div>
 
+    @if (authorName(); as author) {
+      <p class="challenge-detail__author">Submitted by {{ author }}</p>
+    }
+
     <app-status-stepper [challenge]="c" (challengeUpdated)="onChallengeUpdated($event)" />
 
     <p class="challenge-detail__raw-notes">{{ c.rawNotes }}</p>

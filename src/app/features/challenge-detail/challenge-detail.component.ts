@@ -50,6 +50,19 @@ export class ChallengeDetailComponent implements OnInit {
     return this.auth.isAdmin() || challenge.submittedByUserId === user.id;
   });
 
+  // Shown only on a challenge that isn't yours. No admin gate is needed: a
+  // collaborator's list is scoped to their own challenges, so this renders for
+  // an admin browsing the unscoped list, and for anyone who opens a peer's
+  // challenge by URL.
+  readonly authorName = computed(() => {
+    const challenge = this.challenge();
+    const user = this.auth.currentUser();
+    if (challenge === null || user === null || challenge.submittedByUserId === user.id) {
+      return null;
+    }
+    return challenge.submittedByName;
+  });
+
   readonly currentPanel = computed<DetailPanel>(() => {
     switch (this.challenge()?.status) {
       case 'Submitted':

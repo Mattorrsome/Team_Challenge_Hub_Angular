@@ -15,6 +15,7 @@ describe('StatusStepperComponent', () => {
     problemStatement: null,
     status: 'Submitted',
     submittedByUserId: 1,
+    submittedByName: 'Alex Kim',
     createdAt: '2026-07-29T00:00:00Z',
     updatedAt: '2026-07-29T00:00:00Z',
     options: [],

@@ -32,6 +32,7 @@ export interface Challenge {
   problemStatement: string | null;
   status: ChallengeStatus;
   submittedByUserId: number;
+  submittedByName: string;
   createdAt: string;
   updatedAt: string;
   options: SolutionOption[];
