@@ -42,6 +42,13 @@
     padding-left: 16px;
   }
 
+  // Same position, same reason: mat-card-subtitle is also a direct child of
+  // mat-card, so without this the author byline sits flush against the card
+  // edge, out of line with the title above and the badge below.
+  mat-card-subtitle {
+    padding-left: 16px;
+  }
+
   &__card-link {
     text-decoration: none;
     color: inherit;

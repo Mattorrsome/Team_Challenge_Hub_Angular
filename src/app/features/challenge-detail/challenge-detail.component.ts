@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChallengeApiService } from '../../core/services/challenge-api.service';
 import { Challenge } from '../../core/models/challenge.model';
 import { AuthService } from '../../core/auth/auth.service';
@@ -34,6 +35,7 @@ export class ChallengeDetailComponent implements OnInit {
   private readonly challengeApi = inject(ChallengeApiService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly challenge = signal<Challenge | null>(null);
   readonly loadFailed = signal(false);
@@ -106,11 +108,21 @@ export class ChallengeDetailComponent implements OnInit {
       next: () => this.router.navigate(['/challenges']),
       error: (err: HttpErrorResponse) => {
         // 404 means someone else deleted it first, so the user's goal is already
-        // met — reporting a failure would be wrong. 401/403/5xx are surfaced by
-        // errorHandlingInterceptor, so there is nothing to add for them here.
+        // met — reporting a failure would be wrong.
         if (err.status === 404) {
           this.router.navigate(['/challenges']);
+          return;
         }
+
+        // errorHandlingInterceptor speaks for 401, 403, 409 and 5xx. It passes
+        // everything else through — including status 0 (offline or aborted) and
+        // 400 — and the user just accepted a destructive confirm, so staying
+        // silent would leave them unable to tell whether the challenge is gone.
+        if (err.status === 401 || err.status === 403 || err.status === 409 || err.status >= 500) {
+          return;
+        }
+
+        this.snackBar.open(`Could not delete "${challenge.title}".`, 'Dismiss', { duration: 5000 });
       },
     });
   }

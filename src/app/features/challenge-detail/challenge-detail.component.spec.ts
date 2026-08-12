@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChallengeDetailComponent } from './challenge-detail.component';
 import { environment } from '../../../environments/environment';
 import { Challenge, ChallengeStatus } from '../../core/models/challenge.model';
@@ -297,6 +298,49 @@ describe('ChallengeDetailComponent', () => {
       .flush('Not Found', { status: 404, statusText: 'Not Found' });
 
     expect(navigate).toHaveBeenCalledWith(['/challenges']);
+  });
+
+  it('reports a delete failure the interceptor does not cover', () => {
+    // status 0 is offline/aborted. errorHandlingInterceptor handles 401, 403,
+    // 409 and 5xx and passes everything else through, so without this the user
+    // accepts a destructive confirm and gets no feedback at all.
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const snackBar = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+
+    fixture.debugElement
+      .query(By.css('.challenge-detail__header button'))
+      .nativeElement.click();
+
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/challenges/1`)
+      .error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+
+    expect(snackBar).toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet on a delete failure the interceptor already reports', () => {
+    // A 403 already gets "You don't have permission to do that." from the
+    // interceptor; a second snackbar would stack on top of it.
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const snackBar = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+
+    fixture.debugElement
+      .query(By.css('.challenge-detail__header button'))
+      .nativeElement.click();
+
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/challenges/1`)
+      .flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+
+    expect(snackBar).not.toHaveBeenCalled();
   });
 
   it('names the author on someone else\'s challenge', () => {
