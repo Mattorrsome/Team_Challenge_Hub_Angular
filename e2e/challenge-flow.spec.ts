@@ -33,4 +33,14 @@ test('create challenge, draft problem statement, edit, accept, appears in list',
   await page.goto('/challenges');
   const card = page.getByText(title).locator('..');
   await expect(card.getByText('Problem Statement Drafted')).toBeVisible();
+
+  // Delete it from the detail page, accepting the native confirm dialog. The
+  // handler must be registered before the click — a pending dialog blocks every
+  // later browser action until it is answered.
+  await page.getByText(title).click();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Delete' }).click();
+
+  await expect(page).toHaveURL(/\/challenges$/);
+  await expect(page.getByText(title)).toHaveCount(0);
 });
