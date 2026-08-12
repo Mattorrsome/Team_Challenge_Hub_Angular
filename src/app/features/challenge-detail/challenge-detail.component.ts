@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChallengeApiService } from '../../core/services/challenge-api.service';
@@ -32,6 +33,7 @@ export class ChallengeDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly challengeApi = inject(ChallengeApiService);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly challenge = signal<Challenge | null>(null);
   readonly loadFailed = signal(false);
@@ -77,5 +79,26 @@ export class ChallengeDetailComponent implements OnInit {
 
   onChallengeUpdated(updated: Challenge): void {
     this.challenge.set(updated);
+  }
+
+  onDelete(challenge: Challenge): void {
+    // Deletion is immediate and cascades this challenge's options — there is no
+    // undo, so this prompt is the only thing between a mis-click and a removed
+    // row. Same call the user-management view makes, for the same reason.
+    if (!confirm(`Delete "${challenge.title}"?`)) {
+      return;
+    }
+
+    this.challengeApi.deleteChallenge(challenge.id).subscribe({
+      next: () => this.router.navigate(['/challenges']),
+      error: (err: HttpErrorResponse) => {
+        // 404 means someone else deleted it first, so the user's goal is already
+        // met — reporting a failure would be wrong. 401/403/5xx are surfaced by
+        // errorHandlingInterceptor, so there is nothing to add for them here.
+        if (err.status === 404) {
+          this.router.navigate(['/challenges']);
+        }
+      },
+    });
   }
 }

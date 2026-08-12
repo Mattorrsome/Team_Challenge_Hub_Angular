@@ -5,6 +5,7 @@
       <app-status-badge [status]="c.status" />
       @if (canEdit()) {
         <a mat-button [routerLink]="['/challenges', c.id, 'edit']">Edit Title</a>
+        <button mat-button color="warn" (click)="onDelete(c)">Delete</button>
       }
     </div>
 

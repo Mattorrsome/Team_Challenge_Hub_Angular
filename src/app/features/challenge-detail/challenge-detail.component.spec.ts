@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
@@ -46,6 +46,7 @@ describe('ChallengeDetailComponent', () => {
 
   afterEach(() => {
     httpMock.verify();
+    vi.restoreAllMocks();
   });
 
   function expectLoadRequest() {
@@ -218,5 +219,82 @@ describe('ChallengeDetailComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('app-problem-statement-panel'))).toBe(null);
+  });
+
+  it('shows a delete button to the owner', () => {
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.challenge-detail__header button'))).not.toBe(null);
+  });
+
+  it('hides the delete button from a non-owner collaborator', () => {
+    signInAs(2, 'jordan.patel', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.challenge-detail__header button'))).toBe(null);
+  });
+
+  it('shows a delete button to an admin on someone else\'s challenge', () => {
+    // fakeChallenge is submittedByUserId 1, so this admin is not the owner.
+    signInAs(2, 'jordan.patel', 'Admin');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.challenge-detail__header button'))).not.toBe(null);
+  });
+
+  it('sends no request when the delete confirmation is declined', () => {
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    fixture.debugElement
+      .query(By.css('.challenge-detail__header button'))
+      .nativeElement.click();
+
+    // afterEach's httpMock.verify() would fail if a DELETE had been issued.
+    httpMock.expectNone(`${environment.apiBaseUrl}/challenges/1`);
+  });
+
+  it('navigates to the list after a successful delete', () => {
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    fixture.debugElement
+      .query(By.css('.challenge-detail__header button'))
+      .nativeElement.click();
+
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/challenges/1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+
+    expect(navigate).toHaveBeenCalledWith(['/challenges']);
+  });
+
+  it('navigates to the list when the challenge was already deleted', () => {
+    // A 404 means someone else deleted it first. The user's goal is met, so
+    // this is not an error to report.
+    signInAs(1, 'alex.kim', 'Collaborator');
+    expectLoadRequest().flush(fakeChallenge);
+    fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    fixture.debugElement
+      .query(By.css('.challenge-detail__header button'))
+      .nativeElement.click();
+
+    httpMock
+      .expectOne(`${environment.apiBaseUrl}/challenges/1`)
+      .flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+    expect(navigate).toHaveBeenCalledWith(['/challenges']);
   });
 });
