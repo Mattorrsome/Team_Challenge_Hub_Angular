@@ -79,4 +79,16 @@ describe('ChallengeApiService', () => {
     req.flush([]);
     httpMock.verify();
   });
+
+  it('sends a DELETE to the challenge URL', () => {
+    const api = TestBed.inject(ChallengeApiService);
+
+    api.deleteChallenge(7).subscribe();
+
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/challenges/7`);
+    expect(req.request.method).toBe('DELETE');
+
+    req.flush(null);
+    httpMock.verify();
+  });
 });

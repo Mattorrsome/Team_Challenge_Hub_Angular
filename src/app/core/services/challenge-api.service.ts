@@ -91,4 +91,8 @@ export class ChallengeApiService {
   updateStatus(challengeId: number, status: ChallengeStatus): Observable<Challenge> {
     return this.http.put<Challenge>(`${this.baseUrl}/${challengeId}/status`, { status });
   }
+
+  deleteChallenge(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }
