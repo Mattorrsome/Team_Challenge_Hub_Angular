@@ -1,7 +1,7 @@
 # Gap Analysis — Team Challenge Hub Angular
 
 Date: 2026-07-31
-Sources: `docs/specs/2026-07-27-frontend-design.md`, `docs/superpowers/plans/2026-07-29-angular-frontend-scaffold.md`
+Sources: the then-current `docs/specs/2026-07-27-frontend-design.md` and `docs/superpowers/plans/2026-07-29-angular-frontend-scaffold.md` — both consolidated away on 2026-08-13 into `docs/specs/2026-08-13-frontend-design.md` and `docs/superpowers/plans/2026-08-13-implementation-plan.md` (originals in git history). This document is a closed historical record; all findings below were resolved.
 Method: spec + plan read in full, cross-checked against `src/app`, `e2e/`, and the now-existing sibling backend at `../Team_Challenge_Hub_API`.
 
 ## Summary

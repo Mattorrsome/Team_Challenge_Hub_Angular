@@ -5,10 +5,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Repository state
 
 Scaffolded. Angular 22 app lives at repo root (`angular.json`, `package.json`,
-`src/`), built per `docs/specs/2026-07-27-frontend-design.md` — that spec
+`src/`), built per `docs/specs/2026-08-13-frontend-design.md` — that spec
 remains the source of truth for architecture, conventions, and scope. This
 file summarizes it; the spec has the details (exact routes, request/response
-shapes, status flow).
+shapes, status flow). What shipped in what order is in
+`docs/superpowers/plans/2026-08-13-implementation-plan.md`; rejected and
+superseded decisions are in `docs/superpowers/plans/decisions.md`.
 
 Companion backend spec lives in a sibling repo:
 `../Team_Challenge_Hub_API/docs/specs/backend-design.md`.
