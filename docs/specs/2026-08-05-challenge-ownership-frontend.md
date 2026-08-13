@@ -5,7 +5,7 @@
 **Base specs:** `2026-07-27-frontend-design.md`, `2026-08-03-auth-roles-frontend.md`,
 `2026-08-03-ux-behavior-update.md`
 **Companion spec:**
-`../../../Team_Challenge_Hub_API/docs/specs/2026-08-05-challenge-ownership-backend.md`
+`../../../Team_Challenge_Hub_API/docs/specs/backend-design.md`
 (API-side, source of truth for the ownership rule)
 
 ## Problem Statement

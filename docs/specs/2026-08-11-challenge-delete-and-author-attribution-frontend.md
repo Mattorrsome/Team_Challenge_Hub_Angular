@@ -5,7 +5,7 @@
 **Base specs:** `2026-07-27-frontend-design.md`, `2026-08-03-ux-behavior-update.md`,
 `2026-08-05-challenge-ownership-frontend.md`
 **Companion spec:**
-`../../../Team_Challenge_Hub_API/docs/specs/2026-08-11-challenge-author-attribution-backend.md`
+`../../../Team_Challenge_Hub_API/docs/specs/backend-design.md`
 (API-side, source of truth for the `submittedByName` field)
 
 This spec **supersedes** two statements in

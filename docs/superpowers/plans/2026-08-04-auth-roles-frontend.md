@@ -25,7 +25,7 @@ e2e.
   separately or keep them out of this plan's commits. Then create branch
   `feat/auth-roles` (`git checkout -b feat/auth-roles`).
 - **The backend plan must land first**
-  (`../../../Team_Challenge_Hub_API/docs/superpowers/plans/2026-08-04-auth-roles-backend.md`).
+  (`../../../Team_Challenge_Hub_API/docs/superpowers/plans/backend-plan.md`).
   Nothing here works against the old `X-User-Id` API.
 - API contract this plan codes against (source of truth: the backend spec):
   - `POST /api/auth/signup` `{username, password}` → 200 `{id, username, role}`,

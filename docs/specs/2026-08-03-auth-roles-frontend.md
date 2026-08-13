@@ -5,7 +5,7 @@
 **Base spec:** `2026-07-27-frontend-design.md`
 **Companion specs:** `2026-08-03-ux-behavior-update.md`,
 `2026-08-03-styling-theme-update.md`,
-`../../../Team_Challenge_Hub_API/docs/specs/2026-08-03-auth-roles-backend.md`
+`../../../Team_Challenge_Hub_API/docs/specs/backend-design.md`
 (API-side, source of truth for auth mechanics)
 
 ## Problem Statement

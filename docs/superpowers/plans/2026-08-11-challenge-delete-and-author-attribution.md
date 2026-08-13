@@ -10,7 +10,7 @@
 
 **Spec:** `docs/specs/2026-08-11-challenge-delete-and-author-attribution-frontend.md`
 
-**Companion plan (must ship first):** `../../../Team_Challenge_Hub_API/docs/superpowers/plans/2026-08-11-challenge-author-attribution.md` — Task 3 below consumes the `submittedByName` field that plan adds. Tasks 1 and 2 do not depend on it and can proceed in parallel with the API work.
+**Companion plan (must ship first):** `../../../Team_Challenge_Hub_API/docs/superpowers/plans/backend-plan.md` — Task 3 below consumes the `submittedByName` field that plan adds. Tasks 1 and 2 do not depend on it and can proceed in parallel with the API work.
 
 ## Global Constraints
 

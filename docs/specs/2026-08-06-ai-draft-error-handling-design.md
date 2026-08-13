@@ -3,7 +3,7 @@
 **Date:** 2026-08-06
 **Status:** Approved
 **Companion backend spec:**
-`../../../Team_Challenge_Hub_API/docs/specs/2026-08-06-claude-ai-drafting-design.md`
+`../../../Team_Challenge_Hub_API/docs/specs/backend-design.md`
 **Parent spec:** `2026-07-27-frontend-design.md`
 
 ## Problem Statement

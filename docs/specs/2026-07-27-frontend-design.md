@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-27
 **Status:** Approved
-**Companion spec:** `../../../Team_Challenge_Hub_API/docs/specs/2026-07-27-backend-design.md`
+**Companion spec:** `../../../Team_Challenge_Hub_API/docs/specs/backend-design.md`
 
 ## Problem Statement
 

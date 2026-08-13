@@ -26,7 +26,7 @@ and Vitest (Tasks 2-5).
   the repo the task's files belong to.
 - Source specs:
   `../../specs/2026-08-05-challenge-ownership-frontend.md` and
-  `../../../../Team_Challenge_Hub_API/docs/specs/2026-08-05-challenge-ownership-backend.md`.
+  `../../../../Team_Challenge_Hub_API/docs/specs/backend-design.md`.
 - **The rule:** a request may change a challenge's content when the acting user
   is `Admin` **or** `challenge.SubmittedByUserId == actingUserId`.
 - **Gated (403 otherwise):** `PUT /api/challenges/{id}`,

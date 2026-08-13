@@ -5,7 +5,7 @@
 **Source:** task reviews and the whole-branch review of `0a1b57b..6222836`, during
 execution of `../superpowers/plans/2026-08-06-ai-draft-error-messaging.md`
 **Related:** `2026-08-06-ai-draft-error-handling-design.md`
-**Companion:** `../../../Team_Challenge_Hub_API/docs/specs/2026-08-06-deferred-review-findings.md`
+**Companion:** `../../../Team_Challenge_Hub_API/docs/specs/backend-design.md`
 
 Everything here was raised by a reviewer, judged real or arguable, and
 deliberately **not** fixed on that branch. Items the reviews found and that

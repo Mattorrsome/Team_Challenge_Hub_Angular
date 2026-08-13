@@ -9,7 +9,7 @@
 **Tech Stack:** Angular 22 standalone components, signals, Angular Material, Vitest (`@angular/build:unit-test`).
 
 **Spec:** `docs/specs/2026-08-06-ai-draft-error-handling-design.md`
-**Companion API plan:** `../../../Team_Challenge_Hub_API/docs/superpowers/plans/2026-08-06-claude-ai-drafting.md` — implement that one first, so there is a real 503 to test against.
+**Companion API plan:** `../../../Team_Challenge_Hub_API/docs/superpowers/plans/backend-plan.md` — implement that one first, so there is a real 503 to test against.
 
 ## Global Constraints
 
